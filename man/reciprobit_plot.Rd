@@ -4,10 +4,11 @@
 \alias{reciprobit_plot}
 \title{Plot reaction times in reciprobit axes}
 \usage{
-reciprobit_plot(rt)
+reciprobit_plot(plot_data)
 }
 \arguments{
-\item{rt}{vector of reaction times}
+\item{plot_data}{A dataframe with columns: \code{times}, \code{color}, \code{name}, \code{promptness},
+and \code{e_cdf}; one color per name (participant)}
 }
 \value{
 A reciprobit plot with the cumulative probability distribution of the reaction times
@@ -16,5 +17,6 @@ A reciprobit plot with the cumulative probability distribution of the reaction t
 Plot reaction times in reciprobit axes
 }
 \examples{
-reciprobit_plot(rt)
+df <- prepare_data(rt2)
+reciprobit_plot(df)
 }
