@@ -17,7 +17,7 @@
 prepare_data <- function(rt, time_units = "ms") {
   if(typeof(rt) == "double"){
     plot_data <- data.frame(times = convert_to_seconds(rt, time_units = time_units)) %>%
-      dplyr::mutate(color = factor("#1B9E77"))
+      dplyr::mutate(color = "#1B9E77")
   } else if(typeof(rt) == "list") {
     plot_data <- rt %>%
       dplyr::mutate(times = convert_to_seconds(.data$times, time_units = time_units))
@@ -25,7 +25,7 @@ prepare_data <- function(rt, time_units = "ms") {
 
   # If no names, create dataset names from unique colors
   if(!"name" %in% colnames(plot_data)){
-    plot_data <- transform(plot_data, name = factor(match(plot_data$color, unique(plot_data$color))))
+    plot_data <- transform(plot_data, name = match(plot_data$color, unique(plot_data$color)))
   }
 
   plot_data %>%

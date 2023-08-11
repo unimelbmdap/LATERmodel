@@ -33,7 +33,8 @@ reciprobit_plot <- function(plot_data){
       # Secondary axis
       sec.axis = ggplot2::sec_axis(trans = stats::qnorm, name="Z-score", breaks = Z_breaks)
     ) +
-    ggplot2::scale_color_manual(values = levels(plot_data$color), labels = levels(plot_data$name)) +
+    # Unique seems to preserve order of appearance, whereas level doesn't
+    ggplot2::scale_color_manual(values = unique(plot_data$color), labels = unique(plot_data$name)) +
     ggplot2::theme_minimal() +
     ggplot2::labs(color = "") +
     ggplot2::theme(

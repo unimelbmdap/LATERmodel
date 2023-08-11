@@ -61,8 +61,8 @@ rt2 <- df[rep(1:nrow(df), df[,2]), -2]
 
 rt2 <- dplyr::mutate(
   rt2,
-  name = factor(name),
-  color = factor(dplyr::case_when(name == "mu3" ~ "#1B9E77", name == "mu4" ~ "#D95F02"))
+  name = name,
+  color = dplyr::case_when(name == "mu3" ~ "#1B9E77", name == "mu4" ~ "#D95F02")
 )
 
 usethis::use_data(rt2, overwrite = TRUE)
