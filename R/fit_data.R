@@ -52,29 +52,27 @@ objective_function <- function(params, data, n_mu, n_sigma, use_minmax) {
     sigma[data$i_sigma]
   )
 
+  ks = data |>
+    dplyr::group_by(.data$dataset) |>
+    dplyr::mutate(
+      p = pnorm(
+        .data$promptness,
+        mu[.data$i_mu],
+        sigma[.data$i_sigma]
+      ),
+      ecdf_p = ecdf(.data$promptness)(.data$promptness)
+    ) |>
+    dplyr::summarize(
+      ks = calc_ks_stat(.data$ecdf_p, .data$p)
+    ) |>
+    dplyr::pull(ks)
+
   if(use_minmax) {
-
-    ks = data |>
-      dplyr::mutate(p = p) |>
-      dplyr::group_by(.data$dataset) |>
-      dplyr::summarize(
-        ks = calc_ks_stat(
-          ecdf(.data$promptness)(.data$promptness),
-          .data$p
-        )
-      ) |>
-      dplyr::pull(ks)
-
     # "minimise the worst of the fits"
     ks = max(ks)
-
   } else {
-
-    # calculate the empirical cumulative probability of each data point
-    ecdf_function = ecdf(data$promptness)
-    ecdf_p = ecdf_function(data$promptness)
-
-    ks = calc_ks_stat(ecdf_p, p)
+    # "minimise the overall goodness-of-fit statistic"
+    ks = min(ks)
   }
 
   return(ks)
