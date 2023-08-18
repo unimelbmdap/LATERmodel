@@ -46,12 +46,6 @@ objective_function <- function(params, data, n_mu, n_sigma, use_minmax) {
   sigma = params[-(1:n_mu)]
 
   # calculate the expected cumulative probability of each data point under the model
-  p = pnorm(
-    data$promptness,
-    mu[data$i_mu],
-    sigma[data$i_sigma]
-  )
-
   ks = data |>
     dplyr::group_by(.data$dataset) |>
     dplyr::mutate(
