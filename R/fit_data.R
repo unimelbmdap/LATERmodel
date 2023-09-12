@@ -1,32 +1,45 @@
 
 load_demo_data <- function() {
 
-  raw <- read.csv("../../demo_data/spic_demo_mu4_sigma1.SAS", sep="\t", header = FALSE)
-  rt <- (raw[,5] * 10) / 1000
+  raw <- read.csv(
+    "../../demo_data/spic_demo_mu4_sigma1.SAS",
+    sep = "\t",
+    header = FALSE
+  )
+  rt <- (raw[, 5] * 10) / 1000
+  return(rt)
 
 }
 
 load_demo_pair_data <- function(share_mu = FALSE, share_sigma = FALSE) {
 
-  raw_1 <- read.csv("../../demo_data/spic_demo_mu4_sigma1.SAS", sep="\t", header = FALSE)
-  rt_1 <- (raw_1[,5] * 10) / 1000
+  raw_1 <- read.csv(
+    "../../demo_data/spic_demo_mu4_sigma1.SAS",
+    sep = "\t",
+    header = FALSE
+  )
+  rt_1 <- (raw_1[, 5] * 10) / 1000
 
-  raw_2 <- read.csv("../../demo_data/spic_demo_mu4_sigma0_5.SAS", sep="\t", header = FALSE)
-  rt_2 <- (raw_2[,5] * 10) / 1000
+  raw_2 <- read.csv(
+    "../../demo_data/spic_demo_mu4_sigma0_5.SAS",
+    sep = "\t",
+    header = FALSE
+  )
+  rt_2 <- (raw_2[, 5] * 10) / 1000
 
   data <- data.frame(
-    times=c(rt_1, rt_2),
-    dataset=c(rep(1, length(rt_1)), rep(2, length(rt_2))),
-    i_mu=rep(1, length(rt_1) + length(rt_2)),
-    i_sigma=rep(1, length(rt_1) + length(rt_2))
+    times = c(rt_1, rt_2),
+    dataset = c(rep(1, length(rt_1)), rep(2, length(rt_2))),
+    i_mu = rep(1, length(rt_1) + length(rt_2)),
+    i_sigma = rep(1, length(rt_1) + length(rt_2))
   )
 
   if (!share_mu) {
-    data$i_mu[(length(rt_1) + 1):nrow(data)] = 2
+    data$i_mu[(length(rt_1) + 1):nrow(data)] <- 2
   }
 
   if (!share_sigma) {
-    data$i_sigma[(length(rt_1) + 1):nrow(data)] = 2
+    data$i_sigma[(length(rt_1) + 1):nrow(data)] <- 2
   }
 
   return(data)
@@ -35,9 +48,9 @@ load_demo_pair_data <- function(share_mu = FALSE, share_sigma = FALSE) {
 
 fit_data <- function(data, use_minmax = FALSE) {
 
-  # if `data` is just a vector of RTs, assume a two-parameter model and construct
-  # an appropriate data frame
-  if(is.vector(data)) {
+  # if `data` is just a vector of RTs, assume a two-parameter model
+  # and construct an appropriate data frame
+  if (is.vector(data)) {
     data <- data.frame(
       times = data,
       i_mu = rep(1, length(data)),
@@ -79,7 +92,8 @@ objective_function <- function(params, data, n_mu, n_sigma, use_minmax) {
   # drop the `mu` parameters to get the sigma parameters
   sigma <- params[-(1:n_mu)]
 
-  # calculate the expected cumulative probability of each data point under the model
+  # calculate the expected cumulative probability of each data point
+  # under the model
   ks <- data |>
     dplyr::group_by(.data$dataset) |>
     dplyr::mutate(
@@ -114,16 +128,16 @@ calc_start_points <- function(data) {
 
   mu_values <- (
     data |>
-    dplyr::group_by(.data$i_mu) |>
-    dplyr::summarize(val = mean(.data$promptness)) |>
-    dplyr::pull(val)
+      dplyr::group_by(.data$i_mu) |>
+      dplyr::summarize(val = mean(.data$promptness)) |>
+      dplyr::pull(.data$val)
   )
 
   sigma_values <- (
     data |>
       dplyr::group_by(.data$i_sigma) |>
       dplyr::summarize(val = sd(.data$promptness)) |>
-      dplyr::pull(val)
+      dplyr::pull(.data$val)
   )
 
   start_points <- c(mu_values, sigma_values)
@@ -134,8 +148,6 @@ calc_start_points <- function(data) {
 
 # TODO: add checks that the data is as expected
 check_data <- function(data) {
-
-  #mu_factor = factor(data$mu)
 
 }
 
@@ -153,7 +165,6 @@ pnorm_with_early <- function(q, later_mu, later_sd, early_mu, early_sd) {
 
   # cdf of the maximum of two independent gaussians is the product of
   # their individual values
-  # see https://stats.stackexchange.com/questions/173064/what-is-the-distribution-for-the-maximum-minimum-of-two-independent-normal-ran
   early_p <- pnorm(q, early_mu, early_sd)
   later_p <- pnorm(q, later_mu, later_sd)
 
