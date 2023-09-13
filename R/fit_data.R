@@ -3,9 +3,31 @@ load_carpenter_data <- function() {
   raw <- read.csv("../../demo_data/Carpenter_Williams_Nature_1995.csv")
 }
 
+
+get_example_data <- function(showing) {
+
+  data <- load_carpenter_data()
+
+  if (showing == "swivel") {
+    data <- data |>
+      dplyr::filter(.data$Condition %in% c("p05", "p95")) |>
+      dplyr::mutate(
+        name = .data$Condition,
+        promptness = 1 / (.data$Times / 1000)
+      )
+  }
+  else {
+    stopifnot(FALSE)
+  }
+
+  return(data)
+
+}
+
+
 fit_data_model <- function(
   data,
-  share_mu = FALSE,
+  share_a = FALSE,
   share_sigma = FALSE,
   share_sigma_e = FALSE,
   with_early_component = FALSE,
@@ -21,7 +43,7 @@ fit_data_model <- function(
 
   fit_info <- list(
     levels = levels(name_factor),
-    n_mu = as.numeric(!share_mu) + (n_names - 1),
+    n_a = as.numeric(!share_a) + (n_names - 1),
     n_sigma = as.numeric(!share_sigma) + (n_names - 1),
     n_sigma_e = (as.numeric(!share_sigma_e) + (n_names - 1)) * as.numeric(with_early_component),
     with_early_component = with_early_component,
@@ -29,6 +51,18 @@ fit_data_model <- function(
     use_minmax = use_minmax,
     fit = NA
   )
+
+  if (!intercept_form) {
+    fit_info$n_mu = fit_info$n_a
+  }
+  else {
+    if (fit_info$n_sigma == 1) {
+      fit_info$n_mu = fit_info$n_a
+    }
+    else {
+      fit_info$n_mu = 2
+    }
+  }
 
   data <- data.frame(
     name = data$name,
@@ -39,7 +73,7 @@ fit_data_model <- function(
 
   i_name <- as.integer(name_factor)
 
-  if (share_mu) {
+  if (fit_info$n_mu == 1) {
     data$i_mu <- 1
   }
   else {
@@ -53,13 +87,11 @@ fit_data_model <- function(
     data$i_sigma <- i_name
   }
 
-  if (with_early_component) {
-    if (share_sigma_e) {
-      data$i_sigma_e <- 1
-    }
-    else {
-      data$i_sigma_e <- i_name
-    }
+  if (share_sigma_e) {
+    data$i_sigma_e <- 1
+  }
+  else {
+    data$i_sigma_e <- i_name
   }
 
   fit_info$start_points <- calc_start_points(data = data, fit_info = fit_info)
@@ -75,9 +107,18 @@ fit_data_model <- function(
 
   fit_info$fitted_params = unpack_params(
     params = fit$par,
-    n_mu = fit_info$n_mu,
+    n_a = fit_info$n_a,
     n_sigma = fit_info$n_sigma,
     n_sigma_e = fit_info$n_sigma_e
+  )
+
+  fit_info$fitted_params <- append(
+    fit_info$fitted_params,
+    convert_a_to_mu_and_k(
+      a = fit_info$fitted_params$a,
+      sigma = fit_info$fitted_params$sigma,
+      intercept_form = fit_info$intercept_form
+    )
   )
 
   fit_info$fitted_params$s = 1 / fit_info$fitted_params$sigma
@@ -86,17 +127,17 @@ fit_data_model <- function(
 
 }
 
-unpack_params <- function(params, n_mu, n_sigma, n_sigma_e) {
+unpack_params <- function(params, n_a, n_sigma, n_sigma_e) {
 
-  # first `n_mu` items are the mu parameters
-  mu <- params[1:n_mu]
+  # first `n_a` items are the a parameters
+  a <- params[1:n_a]
   # next are the sigma parameters
-  sigma <- params[(n_mu + 1):(n_mu + n_sigma)]
+  sigma <- params[(n_a + 1):(n_a + n_sigma)]
 
-  labelled_params <- list(mu = mu, sigma = sigma)
+  labelled_params <- list(a = a, sigma = sigma)
 
   if (n_sigma_e > 0) {
-    sigma_e <- params[(n_mu + n_sigma + 1):length(params)]
+    sigma_e <- params[(n_a + n_sigma + 1):length(params)]
     labelled_params$sigma_e <- sigma_e
   }
 
@@ -104,15 +145,39 @@ unpack_params <- function(params, n_mu, n_sigma, n_sigma_e) {
 
 }
 
+convert_a_to_mu_and_k <- function(a, sigma, intercept_form) {
+
+  if (intercept_form) {
+    k <- a
+    mu <- k * sigma
+  }
+  else {
+    mu <- a
+    k = mu / sigma
+  }
+
+  return(list(mu=mu, k=k))
+
+}
+
 # returns the KS statistic given a set of model parameter values
 # and the observed data
 objective_function <- function(params, data, fit_info) {
 
-  labelled_params = unpack_params(
+  labelled_params <- unpack_params(
     params = params,
-    n_mu = fit_info$n_mu,
+    n_a = fit_info$n_a,
     n_sigma = fit_info$n_sigma,
     n_sigma_e = fit_info$n_sigma_e
+  )
+
+  labelled_params <- append(
+    labelled_params,
+    convert_a_to_mu_and_k(
+      a = labelled_params$a,
+      sigma = labelled_params$sigma,
+      intercept_form = fit_info$intercept_form
+      )
   )
 
   # calculate the expected cumulative probability of each data point
@@ -172,10 +237,16 @@ calc_start_points <- function(data, fit_info) {
   )
 
   if (fit_info$intercept_form) {
-    mu_values <- mu_values / sigma_values
+    a_values <- mu_values / sigma_values
+    if (fit_info$n_a == 1) {
+      a_values <- mean(a_values)
+    }
+  }
+  else {
+    a_values <- mu_values
   }
 
-  start_points <- c(mu_values, sigma_values)
+  start_points <- c(a_values, sigma_values)
 
   if (fit_info$with_early_component) {
     sigma_e_values <- (
