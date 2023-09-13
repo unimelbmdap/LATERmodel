@@ -1,55 +1,6 @@
 
-load_demo_data <- function() {
-
-  raw <- read.csv(
-    "../../demo_data/spic_demo_mu4_sigma1.SAS",
-    sep = "\t",
-    header = FALSE
-  )
-  rt <- (raw[, 5] * 10) / 1000
-  return(rt)
-
-}
-
 load_carpenter_data <- function() {
-
   raw <- read.csv("../../demo_data/Carpenter_Williams_Nature_1995.csv")
-
-}
-
-load_demo_pair_data <- function(share_mu = FALSE, share_sigma = FALSE) {
-
-  raw_1 <- read.csv(
-    "../../demo_data/spic_demo_mu4_sigma1.SAS",
-    sep = "\t",
-    header = FALSE
-  )
-  rt_1 <- (raw_1[, 5] * 10) / 1000
-
-  raw_2 <- read.csv(
-    "../../demo_data/spic_demo_mu4_sigma0_5.SAS",
-    sep = "\t",
-    header = FALSE
-  )
-  rt_2 <- (raw_2[, 5] * 10) / 1000
-
-  data <- data.frame(
-    times = c(rt_1, rt_2),
-    dataset = c(rep(1, length(rt_1)), rep(2, length(rt_2))),
-    i_mu = rep(1, length(rt_1) + length(rt_2)),
-    i_sigma = rep(1, length(rt_1) + length(rt_2))
-  )
-
-  if (!share_mu) {
-    data$i_mu[(length(rt_1) + 1):nrow(data)] <- 2
-  }
-
-  if (!share_sigma) {
-    data$i_sigma[(length(rt_1) + 1):nrow(data)] <- 2
-  }
-
-  return(data)
-
 }
 
 fit_data_model <- function(
@@ -62,13 +13,13 @@ fit_data_model <- function(
   use_minmax = FALSE
 ) {
 
-  name_factor = factor(data$name)
+  name_factor <- factor(data$name)
 
-  n_names = length(levels(name_factor))
+  n_names <- length(levels(name_factor))
 
   stopifnot(n_names %in% c(1, 2))
 
-  fit_info = list(
+  fit_info <- list(
     levels = levels(name_factor),
     n_mu = as.numeric(!share_mu) + (n_names - 1),
     n_sigma = as.numeric(!share_sigma) + (n_names - 1),
@@ -79,41 +30,39 @@ fit_data_model <- function(
     fit = NA
   )
 
-  data = data.frame(
+  data <- data.frame(
     name = data$name,
     promptness = data$promptness
   )
   
-  data$ecdf_p = stats::ecdf(data$promptness)(data$promptness)
+  data$ecdf_p <- stats::ecdf(data$promptness)(data$promptness)
 
-  i_name = as.integer(name_factor)
+  i_name <- as.integer(name_factor)
 
   if (share_mu) {
-    data$i_mu = 1
+    data$i_mu <- 1
   }
   else {
-    data$i_mu = i_name
+    data$i_mu <- i_name
   }
 
   if (share_sigma) {
-    data$i_sigma = 1
+    data$i_sigma <- 1
   }
   else {
-    data$i_sigma = i_name
+    data$i_sigma <- i_name
   }
 
   if (with_early_component) {
     if (share_sigma_e) {
-      data$i_sigma_e = 1
+      data$i_sigma_e <- 1
     }
     else {
-      data$i_sigma_e = i_name
+      data$i_sigma_e <- i_name
     }
   }
 
-  fit_info$start_points <- calc_start_points(data, fit_info)
-
-  plot(data$promptness, qnorm(data$ecdf_p), ylim=c(-5,5), col="green")
+  fit_info$start_points <- calc_start_points(data = data, fit_info = fit_info)
 
   fit <- optim(
     fit_info$start_points,
@@ -123,7 +72,15 @@ fit_data_model <- function(
   )
 
   fit_info$fit = fit
-  fit_info$data = data
+
+  fit_info$fitted_params = unpack_params(
+    params = fit$par,
+    n_mu = fit_info$n_mu,
+    n_sigma = fit_info$n_sigma,
+    n_sigma_e = fit_info$n_sigma_e
+  )
+
+  fit_info$fitted_params$s = 1 / fit_info$fitted_params$sigma
 
   return(fit_info)
 
@@ -136,11 +93,11 @@ unpack_params <- function(params, n_mu, n_sigma, n_sigma_e) {
   # next are the sigma parameters
   sigma <- params[(n_mu + 1):(n_mu + n_sigma)]
 
-  labelled_params = list(mu=mu, sigma=sigma)
+  labelled_params <- list(mu = mu, sigma = sigma)
 
   if (n_sigma_e > 0) {
     sigma_e <- params[(n_mu + n_sigma + 1):length(params)]
-    labelled_params$sigma_e = sigma_e
+    labelled_params$sigma_e <- sigma_e
   }
 
   return(labelled_params)
@@ -191,9 +148,6 @@ objective_function <- function(params, data, fit_info) {
     ks <- sum(ks)
   }
 
-  x = seq(2.5, 10, length.out=101)
-  lines(x,qnorm(pnorm_with_early(x,labelled_params$mu, labelled_params$sigma, labelled_params$sigma_e)), col=rgb(0,0,0, 0.1))
-
   return(ks)
 
 }
@@ -218,7 +172,7 @@ calc_start_points <- function(data, fit_info) {
   )
 
   if (fit_info$intercept_form) {
-    mu_values = mu_values / sigma_values
+    mu_values <- mu_values / sigma_values
   }
 
   start_points <- c(mu_values, sigma_values)
@@ -238,17 +192,9 @@ calc_start_points <- function(data, fit_info) {
 
 }
 
-# TODO: add checks that the data is as expected
-check_data <- function(data) {
-
-}
-
-
 # calculates the Kolmogorov-Smirnov statistic
 calc_ks_stat <- function(ecdf_p, cdf_p) {
-
   max(abs(ecdf_p - cdf_p))
-
 }
 
 # evaluates the cumulative density distribution when there are both early
@@ -258,8 +204,8 @@ pnorm_with_early <- function(q, later_mu, later_sd, early_sd) {
   early_mu <- 0
 
   # constrain the SDs to be > 0
-  early_sd = max(early_sd, 1e-5)
-  later_sd = max(later_sd, 1e-5)
+  early_sd <- max(early_sd, 1e-5)
+  later_sd <- max(later_sd, 1e-5)
 
   # cdf of the maximum of two independent gaussians is the product of
   # their individual values
@@ -293,7 +239,5 @@ dnorm_with_early <- function(x, later_mu, later_sd, early_mu, early_sd) {
 }
 
 erf <- function(x) {
-
   return(2 * pnorm(x * sqrt(2)) - 1)
-
 }
