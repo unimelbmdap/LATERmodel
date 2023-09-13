@@ -64,13 +64,15 @@ fit_data_model <- function(
 
   name_factor = factor(data$name)
 
-  stopifnot(length(levels(name_factor)) %in% c(1, 2))
+  n_names = length(levels(name_factor))
+
+  stopifnot(n_names %in% c(1, 2))
 
   fit_info = list(
     levels = levels(name_factor),
-    n_mu = as.numeric(!share_mu) + 1,
-    n_sigma = as.numeric(!share_sigma) + 1,
-    n_sigma_e = (as.numeric(!share_sigma_e) + 1) * as.numeric(with_early_component),
+    n_mu = as.numeric(!share_mu) + (n_names - 1),
+    n_sigma = as.numeric(!share_sigma) + (n_names - 1),
+    n_sigma_e = (as.numeric(!share_sigma_e) + (n_names - 1)) * as.numeric(with_early_component),
     with_early_component = with_early_component,
     intercept_form = intercept_form,
     use_minmax = use_minmax,
@@ -82,7 +84,7 @@ fit_data_model <- function(
     promptness = data$promptness
   )
   
-  data$ecdf = stats::ecdf(data$promptness)(data$promptness)
+  data$ecdf_p = stats::ecdf(data$promptness)(data$promptness)
 
   i_name = as.integer(name_factor)
 
@@ -111,6 +113,8 @@ fit_data_model <- function(
 
   fit_info$start_points <- calc_start_points(data, fit_info)
 
+  plot(data$promptness, qnorm(data$ecdf_p), ylim=c(-5,5), col="green")
+
   fit <- optim(
     fit_info$start_points,
     objective_function,
@@ -119,6 +123,7 @@ fit_data_model <- function(
   )
 
   fit_info$fit = fit
+  fit_info$data = data
 
   return(fit_info)
 
@@ -158,10 +163,18 @@ objective_function <- function(params, data, fit_info) {
   ks <- data |>
     dplyr::group_by(.data$name) |>
     dplyr::mutate(
-      p = pnorm(
-        .data$promptness,
-        labelled_params$mu[.data$i_mu],
-        labelled_params$sigma[.data$i_sigma]
+      p = dplyr::case_when(
+        fit_info$with_early_component ~ pnorm_with_early(
+          .data$promptness,
+          labelled_params$mu[.data$i_mu],
+          labelled_params$sigma[.data$i_sigma],
+          labelled_params$sigma_e[.data$i_sigma_e]
+        ),
+        !fit_info$with_early_component ~ pnorm(
+          .data$promptness,
+          labelled_params$mu[.data$i_mu],
+          labelled_params$sigma[.data$i_sigma]
+        )
       ),
       ecdf_p = stats::ecdf(.data$promptness)(.data$promptness)
     ) |>
@@ -177,6 +190,9 @@ objective_function <- function(params, data, fit_info) {
     # "minimise the overall goodness-of-fit statistic"
     ks <- sum(ks)
   }
+
+  x = seq(2.5, 10, length.out=101)
+  lines(x,qnorm(pnorm_with_early(x,labelled_params$mu, labelled_params$sigma, labelled_params$sigma_e)), col=rgb(0,0,0, 0.1))
 
   return(ks)
 
@@ -211,7 +227,7 @@ calc_start_points <- function(data, fit_info) {
     sigma_e_values <- (
       data |>
         dplyr::group_by(.data$i_sigma_e) |>
-        dplyr::summarize(val = sd(.data$promptness) * 5) |>
+        dplyr::summarize(val = sd(.data$promptness) * 3) |>
         dplyr::pull(.data$val)
     )
 
@@ -237,7 +253,13 @@ calc_ks_stat <- function(ecdf_p, cdf_p) {
 
 # evaluates the cumulative density distribution when there are both early
 # and late components and the draw is given by the maximum of the two
-pnorm_with_early <- function(q, later_mu, later_sd, early_mu, early_sd) {
+pnorm_with_early <- function(q, later_mu, later_sd, early_sd) {
+
+  early_mu <- 0
+
+  # constrain the SDs to be > 0
+  early_sd = max(early_sd, 1e-5)
+  later_sd = max(later_sd, 1e-5)
 
   # cdf of the maximum of two independent gaussians is the product of
   # their individual values
