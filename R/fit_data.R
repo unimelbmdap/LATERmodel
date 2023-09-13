@@ -11,6 +11,12 @@ load_demo_data <- function() {
 
 }
 
+load_carpenter_data <- function() {
+
+  raw <- read.csv("../../demo_data/Carpenter_Williams_Nature_1995.csv")
+
+}
+
 load_demo_pair_data <- function(share_mu = FALSE, share_sigma = FALSE) {
 
   raw_1 <- read.csv(
@@ -46,61 +52,116 @@ load_demo_pair_data <- function(share_mu = FALSE, share_sigma = FALSE) {
 
 }
 
-fit_data <- function(data, use_minmax = FALSE) {
+fit_data_model <- function(
+  data,
+  share_mu = FALSE,
+  share_sigma = FALSE,
+  share_sigma_e = FALSE,
+  with_early_component = FALSE,
+  intercept_form = FALSE,
+  use_minmax = FALSE
+) {
 
-  # if `data` is just a vector of RTs, assume a two-parameter model
-  # and construct an appropriate data frame
-  if (is.vector(data)) {
-    data <- data.frame(
-      times = data,
-      i_mu = rep(1, length(data)),
-      i_sigma = rep(1, length(data)),
-      dataset = rep(1, length(data))
-    )
-  }
+  name_factor = factor(data$name)
 
-  data$promptness <- 1.0 / data$times
+  stopifnot(length(levels(name_factor)) %in% c(1, 2))
 
-  check_data(data)
-
-  # how many unique mu and sigma parameters there are
-  n_mu <- length(unique(data$i_mu))
-  n_sigma <- length(unique(data$i_sigma))
-
-  start_points <- calc_start_points(data)
-
-  fit <- optim(
-    start_points,
-    objective_function,
-    data = data,
-    n_mu = n_mu,
-    n_sigma = n_sigma,
-    use_minmax = use_minmax
+  fit_info = list(
+    levels = levels(name_factor),
+    n_mu = as.numeric(!share_mu) + 1,
+    n_sigma = as.numeric(!share_sigma) + 1,
+    n_sigma_e = (as.numeric(!share_sigma_e) + 1) * as.numeric(with_early_component),
+    with_early_component = with_early_component,
+    intercept_form = intercept_form,
+    use_minmax = use_minmax,
+    fit = NA
   )
 
-  return(fit)
+  data = data.frame(
+    name = data$name,
+    promptness = data$promptness
+  )
+  
+  data$ecdf = stats::ecdf(data$promptness)(data$promptness)
+
+  i_name = as.integer(name_factor)
+
+  if (share_mu) {
+    data$i_mu = 1
+  }
+  else {
+    data$i_mu = i_name
+  }
+
+  if (share_sigma) {
+    data$i_sigma = 1
+  }
+  else {
+    data$i_sigma = i_name
+  }
+
+  if (with_early_component) {
+    if (share_sigma_e) {
+      data$i_sigma_e = 1
+    }
+    else {
+      data$i_sigma_e = i_name
+    }
+  }
+
+  fit_info$start_points <- calc_start_points(data, fit_info)
+
+  fit <- optim(
+    fit_info$start_points,
+    objective_function,
+    data = data,
+    fit_info = fit_info,
+  )
+
+  fit_info$fit = fit
+
+  return(fit_info)
 
 }
 
-
-# returns the KS statistic given a set of model parameter values
-# and the observed data
-objective_function <- function(params, data, n_mu, n_sigma, use_minmax) {
+unpack_params <- function(params, n_mu, n_sigma, n_sigma_e) {
 
   # first `n_mu` items are the mu parameters
   mu <- params[1:n_mu]
-  # drop the `mu` parameters to get the sigma parameters
-  sigma <- params[-(1:n_mu)]
+  # next are the sigma parameters
+  sigma <- params[(n_mu + 1):(n_mu + n_sigma)]
+
+  labelled_params = list(mu=mu, sigma=sigma)
+
+  if (n_sigma_e > 0) {
+    sigma_e <- params[(n_mu + n_sigma + 1):length(params)]
+    labelled_params$sigma_e = sigma_e
+  }
+
+  return(labelled_params)
+
+}
+
+# returns the KS statistic given a set of model parameter values
+# and the observed data
+objective_function <- function(params, data, fit_info) {
+
+  labelled_params = unpack_params(
+    params = params,
+    n_mu = fit_info$n_mu,
+    n_sigma = fit_info$n_sigma,
+    n_sigma_e = fit_info$n_sigma_e
+  )
 
   # calculate the expected cumulative probability of each data point
   # under the model
   ks <- data |>
-    dplyr::group_by(.data$dataset) |>
+    dplyr::group_by(.data$name) |>
     dplyr::mutate(
       p = pnorm(
         .data$promptness,
-        mu[.data$i_mu],
-        sigma[.data$i_sigma]
+        labelled_params$mu[.data$i_mu],
+        labelled_params$sigma[.data$i_sigma]
       ),
       ecdf_p = stats::ecdf(.data$promptness)(.data$promptness)
     ) |>
@@ -109,7 +170,7 @@ objective_function <- function(params, data, n_mu, n_sigma, use_minmax) {
     ) |>
     dplyr::pull(ks)
 
-  if (use_minmax) {
+  if (fit_info$use_minmax) {
     # "minimise the worst of the fits"
     ks <- max(ks)
   } else {
@@ -124,7 +185,7 @@ objective_function <- function(params, data, n_mu, n_sigma, use_minmax) {
 
 # use the sample mean and standard deviation of the promptness values
 # to create optimisation starting points
-calc_start_points <- function(data) {
+calc_start_points <- function(data, fit_info) {
 
   mu_values <- (
     data |>
@@ -140,7 +201,22 @@ calc_start_points <- function(data) {
       dplyr::pull(.data$val)
   )
 
+  if (fit_info$intercept_form) {
+    mu_values = mu_values / sigma_values
+  }
+
   start_points <- c(mu_values, sigma_values)
+
+  if (fit_info$with_early_component) {
+    sigma_e_values <- (
+      data |>
+        dplyr::group_by(.data$i_sigma_e) |>
+        dplyr::summarize(val = sd(.data$promptness) * 5) |>
+        dplyr::pull(.data$val)
+    )
+
+    start_points <- c(start_points, sigma_e_values)
+  }
 
   return(start_points)
 
