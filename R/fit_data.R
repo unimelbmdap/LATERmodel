@@ -103,9 +103,9 @@ fit_data_model <- function(
     fit_info = fit_info,
   )
 
-  fit_info$fit = fit
+  fit_info$fit <- fit
 
-  fit_info$fitted_params = unpack_params(
+  fit_info$fitted_params <- unpack_params(
     params = fit$par,
     n_a = fit_info$n_a,
     n_sigma = fit_info$n_sigma,
@@ -121,11 +121,54 @@ fit_data_model <- function(
     )
   )
 
-  fit_info$fitted_params$s = 1 / fit_info$fitted_params$sigma
+  fit_info$fitted_params$s <- 1 / fit_info$fitted_params$sigma
+
+  fit_info$data <- data
+
+  fit_info$loglike <- calc_loglike(fit_info = fit_info)
 
   return(fit_info)
 
 }
+
+calc_loglike <- function(fit_info) {
+
+  if (fit_info$with_early_component) {
+
+    loglike <- fit_info$data |>
+      dplyr::group_by(.data$name) |>
+      dplyr::mutate(
+        loglike = dnorm_with_early(
+          x = .data$promptness,
+          later_mu = fit_info$fitted_params$mu[.data$i_mu],
+          later_sd = fit_info$fitted_params$sigma[.data$i_sigma],
+          early_sd = fit_info$fitted_params$sigma_e[.data$i_sigma_e],
+          log = TRUE
+        ),
+      )
+
+  }
+  else {
+
+    loglike <- fit_info$data |>
+      dplyr::group_by(.data$name) |>
+      dplyr::mutate(
+        loglike = dnorm(
+          x = .data$promptness,
+          mean = fit_info$fitted_params$mu[.data$i_mu],
+          sd = fit_info$fitted_params$sigma[.data$i_sigma],
+          log = TRUE
+        )
+      )
+
+  }
+
+  loglike <- sum(loglike$loglike)
+
+  return(loglike)
+
+}
+
 
 unpack_params <- function(params, n_a, n_sigma, n_sigma_e) {
 
@@ -292,9 +335,11 @@ pnorm_with_early <- function(q, later_mu, later_sd, early_sd) {
 
 # evaluates the probability density function when there are both early
 # and late components and the draw is given by the maximum of the two
-dnorm_with_early <- function(x, later_mu, later_sd, early_mu, early_sd) {
+dnorm_with_early <- function(x, later_mu, later_sd, early_sd, log = FALSE) {
 
-  return(
+  early_mu <- 0
+
+  p <- (
     (
       (
         exp(-(((x - later_mu) ** 2) / (2 * later_sd ** 2)))
@@ -306,6 +351,12 @@ dnorm_with_early <- function(x, later_mu, later_sd, early_mu, early_sd) {
       ) / early_sd
     ) / (2 * sqrt(2 * pi))
   )
+
+  if (log) {
+    p <- base::log(p)
+  }
+
+  return(p)
 
 }
 
