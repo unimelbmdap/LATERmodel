@@ -1,31 +1,24 @@
-
-load_carpenter_data <- function() {
-  raw <- read.csv("../../demo_data/Carpenter_Williams_Nature_1995.csv")
-}
-
-
-get_example_data <- function(showing) {
-
-  data <- load_carpenter_data()
-
-  if (showing == "swivel") {
-    data <- data |>
-      dplyr::filter(.data$Condition %in% c("p05", "p95")) |>
-      dplyr::mutate(
-        name = .data$Condition,
-        promptness = 1 / (.data$Times / 1000)
-      )
-  }
-  else {
-    stopifnot(FALSE)
-  }
-
-  return(data)
-
-}
-
-
-fit_data_model <- function(
+#' Fit a LATER model to a single dataset or a pair of datasets.
+#' 
+#' @param data A data frame with columns `name` and `promptness`.
+#' @param share_a,share_sigma,share_sigma_e If `FALSE` (the default), each
+#'  dataset has its own parameter. If `TRUE`, the datasets share the relevant
+#'  parameter.
+#' @param with_early_component If `TRUE`, the model contains a second 'early'
+#'  component that is absent when `FALSE` (the default).
+#' @param intercept_form If `FALSE` (the default), the `a` parameter describes
+#'  the mu parameter in the model; if `TRUE`, the `a` parameter describes the
+#'  `k` parameter in the model (the intercept).
+#' @param use_minmax If `FALSE` (the default), the optimiser targets the sum
+#'  of the goodness-of-fit values across datasets; if `TRUE`, it instead
+#'  targets the maximum of the goodness-of-fit values across datasets.
+#' @returns A numeric vector.
+#' @examples
+#' data <- data.frame(name = "test", promptness = rnorm(100, 3, 1))
+#' fit <- fit_data(data = data)
+#' data_other <- data.frame(name = "test_2", promptness = rnorm(100, 1, 1))
+#' fit_shared_sigma <- fit_data(data = rbind(data, data_other), share_sigma = TRUE)
+fit_data <- function(
   data,
   share_a = FALSE,
   share_sigma = FALSE,
@@ -35,78 +28,59 @@ fit_data_model <- function(
   use_minmax = FALSE
 ) {
 
-  name_factor <- factor(data$name)
-
-  n_names <- length(levels(name_factor))
-
-  stopifnot(n_names %in% c(1, 2))
-
+  # initialise a container with the provided arguments
   fit_info <- list(
-    levels = levels(name_factor),
-    n_a = as.numeric(!share_a) + (n_names - 1),
-    n_sigma = as.numeric(!share_sigma) + (n_names - 1),
-    n_sigma_e = (as.numeric(!share_sigma_e) + (n_names - 1)) * as.numeric(with_early_component),
+    share_a = share_a,
+    share_sigma = share_sigma,
+    share_sigma_e = share_sigma_e,
     with_early_component = with_early_component,
     intercept_form = intercept_form,
-    use_minmax = use_minmax,
-    fit = NA
+    use_minmax = use_minmax
   )
 
-  if (!intercept_form) {
-    fit_info$n_mu = fit_info$n_a
-  }
-  else {
-    if (fit_info$n_sigma == 1) {
-      fit_info$n_mu = fit_info$n_a
-    }
-    else {
-      fit_info$n_mu = 2
-    }
-  }
-
+  # we only need to deal with the `name` and `promptness` columns in
+  # the supplied data
   data <- data.frame(
     name = data$name,
-    promptness = data$promptness
+    promptness = data$promptness,
+    name_factor = factor(data$name)
   )
-  
-  data$ecdf_p <- stats::ecdf(data$promptness)(data$promptness)
 
-  i_name <- as.integer(name_factor)
+  fit_info$datasets <- levels(data$name_factor)
+  fit_info$n_datasets <- length(fit_info$datasets)
 
-  if (fit_info$n_mu == 1) {
-    data$i_mu <- 1
-  }
-  else {
-    data$i_mu <- i_name
-  }
+  # only support fitting one or two datasets at a time
+  stopifnot(fit_info$n_datasets %in% c(1, 2))
 
-  if (share_sigma) {
-    data$i_sigma <- 1
-  }
-  else {
-    data$i_sigma <- i_name
-  }
+  # work out the number of model parameters for the provided number of
+  # datasets and shared parameter arrangement
+  fit_info <- set_param_counts(fit_info = fit_info)
 
-  if (share_sigma_e) {
-    data$i_sigma_e <- 1
-  }
-  else {
-    data$i_sigma_e <- i_name
-  }
+  # calculate the ECDF and evaluate at each measurement
+  data <- data |>
+    dplyr::group_by(.data$name) |>
+    dplyr::mutate(
+      ecdf_p = stats::ecdf(.data$promptness)(.data$promptness)
+    )
 
+  # add new columns to the dataframe describing the parameter index for
+  # each measurement
+  data <- set_data_param_indices(data = data, fit_info = fit_info)
+
+  # determine reasonable parameter values to start the optimisation
   fit_info$start_points <- calc_start_points(data = data, fit_info = fit_info)
 
-  fit <- optim(
+  # run the optimiser
+  fit_info$optim_result <- optim(
     fit_info$start_points,
     objective_function,
     data = data,
     fit_info = fit_info,
   )
 
-  fit_info$fit <- fit
-
+  # convert the vector of parameter values into named parameters
   fit_info$fitted_params <- unpack_params(
-    params = fit$par,
+    params = fit_info$optim_result$par,
     n_a = fit_info$n_a,
     n_sigma = fit_info$n_sigma,
     n_sigma_e = fit_info$n_sigma_e
@@ -121,52 +95,72 @@ fit_data_model <- function(
     )
   )
 
+  # add the `s` parameter as the inverse of sigma
   fit_info$fitted_params$s <- 1 / fit_info$fitted_params$sigma
 
-  fit_info$data <- data
+  # compute the overall fit log-likelihood
+  fit_info$loglike <- calc_loglike(data = data, fit_info = fit_info)
 
-  fit_info$loglike <- calc_loglike(fit_info = fit_info)
-
+  return(list(f=fit_info,d=data))
   return(fit_info)
 
 }
 
-calc_loglike <- function(fit_info) {
 
-  if (fit_info$with_early_component) {
+model_cdf <- function(q, later_mu, later_sd, early_sd = NULL) {
 
-    loglike <- fit_info$data |>
-      dplyr::group_by(.data$name) |>
-      dplyr::mutate(
-        loglike = dnorm_with_early(
-          x = .data$promptness,
-          later_mu = fit_info$fitted_params$mu[.data$i_mu],
-          later_sd = fit_info$fitted_params$sigma[.data$i_sigma],
-          early_sd = fit_info$fitted_params$sigma_e[.data$i_sigma_e],
-          log = TRUE
-        ),
-      )
-
+  if (is.null(early_sd)) {
+    p <- pnorm(q = q, mean = later_mu, sd = later_sd)
   }
   else {
-
-    loglike <- fit_info$data |>
-      dplyr::group_by(.data$name) |>
-      dplyr::mutate(
-        loglike = dnorm(
-          x = .data$promptness,
-          mean = fit_info$fitted_params$mu[.data$i_mu],
-          sd = fit_info$fitted_params$sigma[.data$i_sigma],
-          log = TRUE
-        )
-      )
-
+    p <- pnorm_with_early(
+      q = q,
+      later_mu = later_mu,
+      later_sd = later_sd,
+      early_sd = early_sd
+    )
   }
 
-  loglike <- sum(loglike$loglike)
+  return(p)
 
-  return(loglike)
+}
 
+model_pdf <- function(x, later_mu, later_sd, early_sd = NULL, log = FALSE) {
+
+  if(is.null(early_sd)) {
+    p <- dnorm(x = x, mean = later_mu, sd = later_sd, log = log)
+  }
+  else {
+    p <- dnorm_with_early(
+      x = x,
+      later_mu = later_mu,
+      later_sd = later_sd,
+      early_sd = early_sd,
+      log = log
+    )
+  }
+
+  return(p)
+
+}
+
+calc_loglike <- function(data, fit_info) {
+
+  loglike <- data |>
+    dplyr::group_by(.data$name) |>
+    dplyr::mutate(
+      loglike = model_pdf(
+        x = .data$promptness,
+        later_mu = fit_info$fitted_params$mu[.data$i_mu],
+        later_sd = fit_info$fitted_params$sigma[.data$i_sigma],
+        early_sd = fit_info$fitted_params$sigma_e[.data$i_sigma_e],
+        log = TRUE
+      ),
+    ) |>
+    dplyr::pull(loglike)
+
+  return(sum(loglike))
+  
 }
 
 
@@ -220,28 +214,20 @@ objective_function <- function(params, data, fit_info) {
       a = labelled_params$a,
       sigma = labelled_params$sigma,
       intercept_form = fit_info$intercept_form
-      )
+    )
   )
 
-  # calculate the expected cumulative probability of each data point
-  # under the model
   ks <- data |>
     dplyr::group_by(.data$name) |>
     dplyr::mutate(
-      p = dplyr::case_when(
-        fit_info$with_early_component ~ pnorm_with_early(
-          .data$promptness,
-          labelled_params$mu[.data$i_mu],
-          labelled_params$sigma[.data$i_sigma],
-          labelled_params$sigma_e[.data$i_sigma_e]
-        ),
-        !fit_info$with_early_component ~ pnorm(
-          .data$promptness,
-          labelled_params$mu[.data$i_mu],
-          labelled_params$sigma[.data$i_sigma]
-        )
-      ),
-      ecdf_p = stats::ecdf(.data$promptness)(.data$promptness)
+      # calculate the expected cumulative probability of each data point
+      # under the model
+      p = model_cdf(
+        q = .data$promptness,
+        later_mu = labelled_params$mu[.data$i_mu],
+        later_sd = labelled_params$sigma[.data$i_sigma],
+        early_sd = labelled_params$sigma_e[.data$i_sigma_e]
+      )
     ) |>
     dplyr::summarize(
       ks = calc_ks_stat(.data$ecdf_p, .data$p)
@@ -311,21 +297,21 @@ calc_ks_stat <- function(ecdf_p, cdf_p) {
   max(abs(ecdf_p - cdf_p))
 }
 
+
 # evaluates the cumulative density distribution when there are both early
 # and late components and the draw is given by the maximum of the two
 pnorm_with_early <- function(q, later_mu, later_sd, early_sd) {
 
   early_mu <- 0
 
-  # constrain the SDs to be > 0
-  early_sd <- max(early_sd, 1e-5)
-  later_sd <- max(later_sd, 1e-5)
+  # constrain the SDs to be >= 0
+  early_sd <- max(early_sd, 0)
+  later_sd <- max(later_sd, 0)
 
   # cdf of the maximum of two independent gaussians is the product of
   # their individual values
   early_p <- pnorm(q, early_mu, early_sd)
   later_p <- pnorm(q, later_mu, later_sd)
-
   p <- early_p * later_p
 
   return(p)
@@ -362,4 +348,64 @@ dnorm_with_early <- function(x, later_mu, later_sd, early_sd, log = FALSE) {
 
 erf <- function(x) {
   return(2 * pnorm(x * sqrt(2)) - 1)
+}
+
+
+set_param_counts <- function(fit_info) {
+
+  fit_info$n_a <- ifelse(fit_info$share_a, 1, fit_info$n_datasets)
+  fit_info$n_sigma <- ifelse(fit_info$share_sigma, 1, fit_info$n_datasets)
+  fit_info$n_sigma_e <- ifelse(
+    fit_info$with_early_component,
+    ifelse(fit_info$share_sigma_e, 1, fit_info$n_datasets),
+    0
+  )
+
+  fit_info$n_mu <- ifelse(
+    fit_info$intercept_form,
+    fit_info$n_sigma,
+    fit_info$n_a
+  )
+
+  return(fit_info)
+
+}
+
+set_data_param_indices <- function(data, fit_info) {
+
+  i_dataset = as.integer(data$name_factor)
+
+  # remember that `ifelse` is strange for vectors!
+  data$i_mu <- if(fit_info$n_mu == 1) 1 else i_dataset
+  data$i_sigma <- if(fit_info$share_sigma) 1 else i_dataset
+  data$i_sigma_e <- if(fit_info$share_sigma_e) 1 else i_dataset
+
+  return(data)
+
+}
+
+
+load_carpenter_data <- function() {
+  raw <- read.csv("../../demo_data/Carpenter_Williams_Nature_1995.csv")
+}
+
+
+get_example_data <- function(showing) {
+
+  data <- load_carpenter_data()
+
+  if (showing == "swivel") {
+    data <- data |>
+      dplyr::filter(.data$Condition %in% c("p05", "p95")) |>
+      dplyr::mutate(
+        name = .data$Condition,
+        promptness = 1 / (.data$Times / 1000)
+      )
+  }
+  else {
+    stopifnot(FALSE)
+  }
+
+  return(data)
+
 }
