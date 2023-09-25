@@ -1,5 +1,8 @@
 #' Simulate a dataset given model parameters.
 #'
+#' Generates samples from a set of provided LATER model parameters,
+#' iteratively replacing invalid samples (reaction times <= 0).
+#'
 #' @param n Number of samples (trials)
 #' @param later_mu Mean of the later component.
 #' @param later_sd Standard deviation of the later component.
@@ -28,9 +31,9 @@ simulate_dataset <- function(
   withr::with_seed(
     seed = seed,
     code = {
-      later_draws <- stats::rnorm(n = n, mean = later_mu, sd = later_sd)
+      later_draws <- draw_samples(n = n, mean = later_mu, sd = later_sd)
       if (has_early) {
-        early_draws <- stats::rnorm(n = n, mean = 0, sd = early_sd)
+        early_draws <- draw_samples(n = n, mean = 0, sd = early_sd)
         draws <- pmax(later_draws, early_draws)
       } else {
         draws <- later_draws
@@ -41,5 +44,27 @@ simulate_dataset <- function(
   times <- 1 / draws
 
   return(times)
+
+}
+
+# re-draws if sample is <= 0
+draw_samples <- function(n, mean, sd) {
+
+  samples <- rep(x = -1, times = n)
+
+  repeat(
+    {
+      n_lte_zero <- sum(samples <= 0)
+
+      if (n_lte_zero == 0) {
+        break
+      }
+      samples[samples <= 0] <- stats::rnorm(
+        n = n_lte_zero, mean = mean, sd = sd
+      )
+    }
+  )
+
+  return(samples)
 
 }
