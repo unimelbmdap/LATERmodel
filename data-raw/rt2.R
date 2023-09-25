@@ -4,7 +4,7 @@
 # mu3 = LATER 1 mu 3 sig 0.5 R, count = 200
 # mu4 = LATER 2 mu 4 sig 0.5 R, count = 200
 df <- as.data.frame(dplyr::tribble(
-~times, ~raw, ~name,
+~time, ~raw, ~name,
 180,  1, "mu4",
 200,  5, "mu4",
 210,  9, "mu4",

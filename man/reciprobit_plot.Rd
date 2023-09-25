@@ -7,7 +7,7 @@
 reciprobit_plot(plot_data)
 }
 \arguments{
-\item{plot_data}{A dataframe with columns: \code{times}, \code{color}, \code{name}, \code{promptness},
+\item{plot_data}{A dataframe with columns: \code{time}, \code{color}, \code{name}, \code{promptness},
 and \code{e_cdf}; one color per name (participant)}
 }
 \value{

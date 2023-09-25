@@ -15,6 +15,6 @@ test_data <- dplyr::tribble(
 300, 1
 )
 
-rt <- rep(test_data$rt, times=test_data$raw)
+rt <- rep(test_data$rt, time=test_data$raw)
 
 usethis::use_data(rt, overwrite = TRUE)

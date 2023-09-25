@@ -4,19 +4,19 @@
 \alias{prepare_data}
 \title{Prepares data for reciprobit plot}
 \usage{
-prepare_data(rt, time_units = "ms")
+prepare_data(rt, time_unit = "ms")
 }
 \arguments{
 \item{rt}{Vector of reaction times for a single participant, or a dataframe
-with a column called \code{times} with the reaction times and another called
+with a column called \code{time} with the reaction times and another called
 \code{color} that contains one hexadecimal color code for each participant.
 Optionally may contain a column \code{name} to use as labels for each dataset.}
 
-\item{time_units}{Units of the reaction times in rt_vector,
+\item{time_unit}{Units of the reaction times in rt_vector,
 must be one of "ms", "ds", or "s".}
 }
 \value{
-A dataframe with columns: \code{times}, \code{color}, \code{name}, \code{promptness}, and \code{e_cdf}.
+A dataframe with columns: \code{time}, \code{color}, \code{name}, \code{promptness}, and \code{e_cdf}.
 }
 \description{
 Prepares data for reciprobit plot

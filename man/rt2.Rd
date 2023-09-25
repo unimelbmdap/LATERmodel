@@ -9,7 +9,7 @@
 
 A dataframe of 200 reaction times for two participants: mu3 and mu4
 \describe{
-\item{times}{Reaction times in ms}
+\item{time}{Reaction times in ms}
 \item{name}{Participant name}
 \item{color}{Color to use for plotting each participant}
 }

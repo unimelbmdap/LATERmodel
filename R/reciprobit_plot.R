@@ -1,6 +1,6 @@
 #' Plot reaction times in reciprobit axes
 #'
-#' @param plot_data A dataframe with columns: `times`, `color`, `name`, `promptness`,
+#' @param plot_data A dataframe with columns: `time`, `color`, `name`, `promptness`,
 #' and `e_cdf`; one color per name (participant)
 #'
 #' @return A reciprobit plot with the cumulative probability distribution of the reaction times
