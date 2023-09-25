@@ -57,7 +57,7 @@ df <- as.data.frame(dplyr::tribble(
   530, 1, "mu3"
 ))
 
-rt2 <- df[rep(1:nrow(df), df[, 2]), -2]
+rt2 <- df[seq_len(nrow(df), df[, 2]), -2]
 
 rt2 <- dplyr::mutate(
   rt2,
