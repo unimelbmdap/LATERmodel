@@ -10,51 +10,67 @@ test_that(
   }
 )
 
-
 test_that(
-  "LATER model fit (mu = 3, sigma = 1) is as expected",
+  "parameter unpacking works",
   {
 
-    seed = 23256312
+    # some dummy values for the parameters
+    a <- c(1, 2)
+    sigma <- c(3, 4)
+    sigma_e <- c(5, 6)
 
-    later_mu = 3
-    later_sd = 1
-    early_sd = NULL
+    for (n_a in c(1, 2)) {
+      for (n_sigma in c(1, 2)) {
+        for (n_sigma_e in c(0, 1, 2)) {
 
-    n = 10000
+          params <- c(a[1:n_a], sigma[1:n_sigma])
 
-    times = simulate_dataset(
-      n = n,
-      later_mu = later_mu,
-      later_sd = later_sd,
-      early_sd = early_sd,
-      seed = seed
-    )
+          if (n_sigma_e > 0) {
+            params <- c(params, sigma_e[1:n_sigma_e])
+          }
 
-    data = data.frame(name = "test", promptness = 1 / times)
+          unpacked <- unpack_params(
+            params = params,
+            n_a = n_a,
+            n_sigma = n_sigma,
+            n_sigma_e = n_sigma_e
+          )
 
-    fit = fit_data(data = data)
+          expected <- list(
+            a = a[1:n_a],
+            sigma = sigma[1:n_sigma]
+          )
 
-    expect_equal(fit$fitted_params$mu, 2.991689, tolerance = 6)
-    expect_equal(fit$fitted_params$sigma, 0.9914882, tolerance = 6)
+          if (n_sigma_e > 0) {
+            expected$sigma_e <- sigma_e[1:n_sigma_e]
+          }
+
+          expect_equal(unpacked, expected)
+
+        }
+
+      }
+
+    }
 
   }
 )
 
 
 test_that(
-  "LATER model fit (mu = 3, sigma = 1, sigma_e = 5) is as expected",
+  "LATER model fit (mu = 5, sigma = 1) is as expected",
   {
 
-    seed = 946395130
+    seed <- 23256312
 
-    later_mu = 3
-    later_sd = 1
-    early_sd = 5
+    # Carpenter & Noorani (2023), Figure 1.15
+    later_mu <- 5
+    later_sd <- 1
+    early_sd <- NULL
 
-    n = 10000
+    n <- 5000
 
-    times = simulate_dataset(
+    times <- simulate_dataset(
       n = n,
       later_mu = later_mu,
       later_sd = later_sd,
@@ -62,13 +78,65 @@ test_that(
       seed = seed
     )
 
-    data = data.frame(name = "test", promptness = 1 / times)
+    data <- data.frame(name = "test", promptness = 1 / times)
 
-    fit = fit_data(data = data, with_early_component = TRUE)
+    fit <- fit_data(data = data)
 
-    expect_equal(fit$fitted_params$mu, 3.552097, tolerance = 6)
-    expect_equal(fit$fitted_params$sigma, 1.303464, tolerance = 6)
-    expect_equal(fit$fitted_params$sigma_e, 6.529583, tolerance = 6)
+    expect_equal(
+      fit$fitted_params$mu,
+      5.004784,
+      tolerance = 6
+    )
+    expect_equal(
+      fit$fitted_params$sigma,
+      0.9956403,
+      tolerance = 6
+    )
+
+  }
+)
+
+
+test_that(
+  "LATER model fit (mu = 5, sigma = 0.5, sigma_e = 3) is as expected",
+  {
+
+    seed <- 946395130
+
+    # Carpenter & Noorani (2023), Figure 2.5
+    later_mu <- 5
+    later_sd <- 0.5
+    early_sd <- 3
+
+    n <- 1000
+
+    times <- simulate_dataset(
+      n = n,
+      later_mu = later_mu,
+      later_sd = later_sd,
+      early_sd = early_sd,
+      seed = seed
+    )
+
+    data <- data.frame(name = "test", promptness = 1 / times)
+
+    fit <- fit_data(data = data, with_early_component = TRUE)
+
+    expect_equal(
+      fit$fitted_params$mu,
+      5.01478,
+      tolerance = 6
+    )
+    expect_equal(
+      fit$fitted_params$sigma,
+      0.5054952,
+      tolerance = 6
+    )
+    expect_equal(
+      fit$fitted_params$sigma_e,
+      3.156108,
+      tolerance = 6
+    )
 
   }
 )
