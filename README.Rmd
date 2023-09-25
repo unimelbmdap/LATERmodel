@@ -1,0 +1,52 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# LATERmodel
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of LATERmodel is to make the 
+
+## Installation
+
+You can install the development version of LATERmodel from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("unimelbmdap/LATERmodel")
+```
+
+## Example
+
+Load digitised data from Figure 1 in Carpenter and Williams (1995)
+
+```{r example}
+library(LATERmodel)
+
+data(carpenter_williams_1995)
+```
+
+Figure 1a
+```{r fig1a}
+a <- prepare_data(dplyr::filter(carpenter_williams_1995, participant == "a"))
+reciprobit_plot(a)
+```
+
+Figure 1b
+```{r fig1b}
+b <- prepare_data(dplyr::filter(carpenter_williams_1995, participant == "b"))
+reciprobit_plot(b)
+```

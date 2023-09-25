@@ -23,9 +23,15 @@ prepare_data <- function(rt, time_unit = "ms") {
       dplyr::mutate(time = convert_to_seconds(.data$time, time_unit = time_unit))
   }
 
-  # If no names, create dataset names from unique colors
+  # If no names, create dataset names from unique colors or from participant and condition
   if(!"name" %in% colnames(plot_data)){
-    plot_data <- transform(plot_data, name = match(plot_data$color, unique(plot_data$color)))
+    if("color" %in% colnames(plot_data)){
+      plot_data <- transform(plot_data, name = match(plot_data$color, unique(plot_data$color)))
+    } else {
+      plot_data <- plot_data %>%
+        dplyr::mutate(name = as.factor(paste(.data$participant, .data$condition, sep = "_")))
+      plot_data <- add_colors(plot_data)
+    }
   }
 
   plot_data %>%
@@ -37,6 +43,21 @@ prepare_data <- function(rt, time_unit = "ms") {
     ) %>%
     dplyr::filter(.data$e_cdf < 1)
 
+}
+
+#' If colors arenot defined, add colors from Color Brewer, up to 8
+#'
+#' @param df Dataframe with a column called `name` that has a unique name for each dataset
+#'
+#' @return A dataframe with an extra column called `color` that has a unique color for each dataset
+add_colors <- function(df) {
+  if (length(unique(df$name)) > 8) {
+    rlang::abort('Plotting is implemented only for 8 datasets or fewer at the moment.')
+  }
+  color_brewer_colors = c('#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d','#666666')
+  df %>%
+    dplyr::mutate(color = factor(color_brewer_colors[as.numeric(as.factor(.data$name))],
+                                 levels = color_brewer_colors))
 }
 
 #' Convert reaction time vector to seconds. Used only internally, so not exported
