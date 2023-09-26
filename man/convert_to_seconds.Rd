@@ -4,12 +4,12 @@
 \alias{convert_to_seconds}
 \title{Convert reaction time vector to seconds. Used only internally, so not exported}
 \usage{
-convert_to_seconds(rt_vector, time_units = "ms")
+convert_to_seconds(rt_vector, time_unit = "ms")
 }
 \arguments{
 \item{rt_vector}{Vector of reaction times, with type 'double'}
 
-\item{time_units}{Units of rt_vector, must be one of "ms", "ds", or "s"}
+\item{time_unit}{Units of rt_vector, must be one of "ms", "ds", or "s"}
 }
 \value{
 rt_vector in seconds
