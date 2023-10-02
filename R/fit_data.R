@@ -412,3 +412,30 @@ set_data_param_indices <- function(data, fit_info) {
   return(data)
 
 }
+
+
+promptness_ecdf <- function(promptness, adjust_for_times = TRUE, eval_unique = FALSE) {
+
+  ecdf <- stats::ecdf(x = promptness)
+
+  x <- if (eval_unique) unique(promptness) else promptness
+
+  if (adjust_for_times) {
+
+    times_x = 1 / x
+    times = 1 / promptness
+
+    y <- c()
+
+    for (time in times_x) {
+      y <- c(y, mean(time < times))
+    }
+
+  }
+  else {
+    y <- ecdf(x)
+  }
+
+  return(data.frame(x = x, y = y))
+
+}
