@@ -140,3 +140,58 @@ test_that(
 
   }
 )
+
+
+test_that(
+  "ECDF matches the application for C&W1995 (A, p50)",
+  {
+
+    # copied from the application log for this dataset
+    application_pcnt <- c(
+      0.29,
+      0.59,
+      0.73,
+      0.95,
+      1.54,
+      2.78,
+      6.15,
+      12.82,
+      21.47,
+      35.02,
+      49.96,
+      60,
+      71.14,
+      79.41,
+      87.11,
+      91.36,
+      93.04,
+      94.65,
+      96.78,
+      97.73,
+      98.53,
+      99.27,
+      99.49,
+      99.93,
+      100
+    )
+
+    times <- carpenter_williams_1995 |>
+      dplyr::filter(
+        .data$participant == "a",
+        .data$condition == "p50",
+      ) |>
+      dplyr::pull("time")
+
+    promptness <- 1 / (times / 1000)
+
+    p <- promptness_ecdf(promptness = promptness, eval_unique = TRUE)
+    pcnt <- p$y * 100
+
+    expect_equal(
+      100 - pcnt,
+      application_pcnt,
+      tolerance = 2
+    )
+
+  }
+)
