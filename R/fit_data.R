@@ -62,12 +62,7 @@ fit_data <- function(
   # datasets and shared parameter arrangement
   fit_info <- set_param_counts(fit_info = fit_info)
 
-  # calculate the ECDF and evaluate at each measurement
-  data <- data |>
-    dplyr::group_by(.data$name) |>
-    dplyr::mutate(
-      ecdf_p = promptness_ecdf(.data$promptness)$y,
-    )
+  data <- add_ecdf_to_data(data = data)
 
   # add new columns to the dataframe describing the parameter index for
   # each measurement
@@ -170,6 +165,43 @@ model_pdf <- function(x, later_mu, later_sd, early_sd = NULL, log = FALSE) {
   return(p)
 
 }
+
+
+#' Compute the empirical cumulative distribution function for promptness
+#'
+#' @param promptness A vector of promptness values (1 / times)
+#' @param adjust_for_times If `TRUE` (the default), the returned `y` value is
+#'  such that `1 - y = P(1/promptness <= 1/x). If `FALSE`, the returned
+#'  `y` value is such that `y = P(promptness <= x)`.
+#' @param eval_unique If `FALSE` (the default), the ECDF is evaluated at all
+#' values in `promptness`. If `TRUE`, the ECDF is evaluated at the unique
+#' values in `promptness`.
+#' @returns A data frame with attributes:
+#' * `x` is the values at which the ECDF was evaluated.
+#' * `y` is the evaluated value of the ECDF.
+#' @examples
+#' p <- promptness_ecdf(promptness = rnorm(100, 3, 1))
+#' @export
+promptness_ecdf <- function(
+  promptness,
+  adjust_for_times = TRUE,
+  eval_unique = FALSE
+) {
+
+  x <- if (eval_unique) unique(promptness) else promptness
+
+  if (adjust_for_times) {
+    ecdf <- stats::ecdf(1 / promptness)
+    y <- 1 - ecdf(1 / x)
+  } else {
+    ecdf <- stats::ecdf(promptness)
+    y <- ecdf(x)
+  }
+
+  return(data.frame(x = x, y = y))
+
+}
+
 
 calc_loglike <- function(data, fit_info) {
 
@@ -414,37 +446,15 @@ set_data_param_indices <- function(data, fit_info) {
 }
 
 
-#' Compute the empirical cumulative distribution function for promptness
-#'
-#' @param promptness A vector of promptness values (1 / times)
-#' @param adjust_for_times If `TRUE` (the default), the returned `y` value is
-#'  such that `1 - y = P(1/promptness <= 1/x). If `FALSE`, the returned
-#'  `y` value is such that `y = P(promptness <= x)`.
-#' @param eval_unique If `FALSE` (the default), the ECDF is evaluated at all
-#' values in `promptness`. If `TRUE`, the ECDF is evaluated at the unique
-#' values in `promptness`.
-#' @returns A data frame with attributes:
-#' * `x` is the values at which the ECDF was evaluated.
-#' * `y` is the evaluated value of the ECDF.
-#' @examples
-#' p <- promptness_ecdf(promptness = rnorm(100, 3, 1))
-#' @export
-promptness_ecdf <- function(
-  promptness,
-  adjust_for_times = TRUE,
-  eval_unique = FALSE
-) {
+# calculate the ECDF and evaluate at each measurement
+add_ecdf_to_data <- function(data) {
 
-  x <- if (eval_unique) unique(promptness) else promptness
+  data <- data |>
+    dplyr::group_by(.data$name) |>
+    dplyr::mutate(
+      ecdf_p = promptness_ecdf(.data$promptness)$y,
+    )
 
-  if (adjust_for_times) {
-    ecdf <- stats::ecdf(1 / promptness)
-    y <- 1 - ecdf(1 / x)
-  } else {
-    ecdf <- stats::ecdf(promptness)
-    y <- ecdf(x)
-  }
-
-  return(data.frame(x = x, y = y))
+  return(data)
 
 }
