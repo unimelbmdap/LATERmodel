@@ -14,6 +14,8 @@
 #'  targets the maximum of the goodness-of-fit values across datasets.
 #' @returns A list of fitting arguments and outcomes.
 #' * `fitted_params` is a named list of fitted parameter values.
+#' * `named_fit_params` is a data frame with rows given by the dataset names
+#'   and columns given by the parameter names.
 #' * `loglike` is the overall log-likelihood of the fit.
 #' * `optim_result` is the raw output from `stats::optim`.
 #' @examples
@@ -98,6 +100,10 @@ fit_data <- function(
 
   # add the `s` parameter as the inverse of sigma
   fit_info$fitted_params$s <- 1 / fit_info$fitted_params$sigma
+
+  # calculate a data table for the fitted parameters, taking into account the
+  # sharing of parameters
+  fit_info$named_fit_params <- add_named_fit_params(fit_info = fit_info)
 
   # compute the overall fit log-likelihood
   fit_info$loglike <- calc_loglike(data = data, fit_info = fit_info)
@@ -240,6 +246,22 @@ unpack_params <- function(params, n_a, n_sigma, n_sigma_e) {
   return(labelled_params)
 
 }
+
+
+add_named_fit_params <- function(fit_info) {
+
+  df <- data.frame(
+    lapply(
+      X = fit_info$fitted_params,
+      FUN = (function(x) rep(x, length.out = fit_info$n_datasets))
+    ),
+    row.names = fit_info$datasets
+  )
+
+  return(df)
+
+}
+
 
 convert_a_to_mu_and_k <- function(a, sigma, intercept_form) {
 
