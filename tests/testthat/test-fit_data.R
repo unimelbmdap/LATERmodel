@@ -318,3 +318,51 @@ test_that(
 
   }
 )
+
+
+test_that(
+  "Two fits without sharing are the same as fitting separately",
+  {
+
+    n <- 5000
+
+    data_a <- data.frame(
+      name = "a",
+      promptness = 1 / simulate_dataset(
+        n = n,
+        later_mu = 5,
+        later_sd = 1,
+        early_sd = NULL,
+        seed = 4685513
+      )
+    )
+
+    data_b <- data.frame(
+      name = "b",
+      promptness = 1 / simulate_dataset(
+        n = n,
+        later_mu = 4,
+        later_sd = 1.5,
+        early_sd = NULL,
+        seed = 6448
+      )
+    )
+
+    a_fit <- fit_data(data = data_a)
+    b_fit <- fit_data(data = data_b)
+    combined_fit <- fit_data(data = rbind(data_a, data_b))
+
+    expect_equal(
+      a_fit$fitted_params,
+      as.list(combined_fit$named_fit_params["a",]),
+      tolerance = 2
+    )
+
+    expect_equal(
+      b_fit$fitted_params,
+      as.list(combined_fit$named_fit_params["b",]),
+      tolerance = 2
+    )
+
+  }
+)
