@@ -60,6 +60,10 @@ fit_data <- function(
   # only support fitting one or two datasets at a time
   stopifnot(fit_info$n_datasets %in% c(1, 2))
 
+  if (fit_info$n_datasets == 2 && !any(share_a, share_sigma, share_sigma_e)) {
+    warning("Two datasets were provided, but there are no shared parameters")
+  }
+
   # work out the number of model parameters for the provided number of
   # datasets and shared parameter arrangement
   fit_info <- set_param_counts(fit_info = fit_info)

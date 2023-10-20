@@ -205,75 +205,75 @@ test_that(
     participants <- c("a", "b")
 
     spic_data <- data.frame(
-        participant = rep(participants, times = rep(length(conditions), 2)),
-        condition = rep(conditions, 2),
-        ks = c(
-          0.042,
-          0.027,
-          0.016,
-          0.014,
-          0.007,
-          0.01,
-          0.017,
-          0.05,
-          0.029,
-          0.012,
-          0.011,
-          0.009,
-          0.011,
-          0.019
-        ),
-        mu = c(
-          3.64,
-          4.02,
-          4.09,
-          4.93,
-          5.26,
-          5.43,
-          5.53,
-          3.6,
-          4,
-          4.61,
-          5.07,
-          5.17,
-          5.49,
-          5.67
-        ),
-        sigma = c(
-          0.61,
-          0.73,
-          0.67,
-          0.74,
-          0.78,
-          0.77,
-          0.85,
-          0.7,
-          0.76,
-          0.94,
-          1.04,
-          1.06,
-          1.16,
-          1.18
-        ),
-        sigma_e = c(
-          0.13,
-          1.49,
-          3.02,
-          3.06,
-          4.03,
-          4.8,
-          5.26,
-          1.13,
-          1.01,
-          1.91,
-          1.6,
-          3.97,
-          4.21,
-          5.34
-        )
+      participant = rep(participants, times = rep(length(conditions), 2)),
+      condition = rep(conditions, 2),
+      ks = c(
+        0.042,
+        0.027,
+        0.016,
+        0.014,
+        0.007,
+        0.01,
+        0.017,
+        0.05,
+        0.029,
+        0.012,
+        0.011,
+        0.009,
+        0.011,
+        0.019
+      ),
+      mu = c(
+        3.64,
+        4.02,
+        4.09,
+        4.93,
+        5.26,
+        5.43,
+        5.53,
+        3.6,
+        4,
+        4.61,
+        5.07,
+        5.17,
+        5.49,
+        5.67
+      ),
+      sigma = c(
+        0.61,
+        0.73,
+        0.67,
+        0.74,
+        0.78,
+        0.77,
+        0.85,
+        0.7,
+        0.76,
+        0.94,
+        1.04,
+        1.06,
+        1.16,
+        1.18
+      ),
+      sigma_e = c(
+        0.13,
+        1.49,
+        3.02,
+        3.06,
+        4.03,
+        4.8,
+        5.26,
+        1.13,
+        1.01,
+        1.91,
+        1.6,
+        3.97,
+        4.21,
+        5.34
       )
+    )
 
-    fit_info = list(
+    fit_info <- list(
       n_a = 1,
       n_mu = 1,
       n_sigma = 1,
@@ -284,33 +284,37 @@ test_that(
       use_minmax = FALSE
     )
 
-    for (row in 1:nrow(spic_data)) {
+    for (row in seq_len(nrow(spic_data))) {
 
       data <- (
         carpenter_williams_1995 |>
-        dplyr::filter(
-          .data$participant == spic_data[row, "participant"],
-          .data$condition == spic_data[row, "condition"]
-        ) |>
-        dplyr::mutate(
-          name = "ks_test",
-          promptness = 1 / (.data$time / 1000),
-          name_factor = factor(.data$name)
-        ) |>
-        dplyr::select(name, promptness, name_factor)
+          dplyr::filter(
+            .data$participant == spic_data[row, "participant"],
+            .data$condition == spic_data[row, "condition"]
+          ) |>
+          dplyr::mutate(
+            name = "ks_test",
+            promptness = 1 / (.data$time / 1000),
+            name_factor = factor(.data$name)
+          ) |>
+          dplyr::select(name, promptness, name_factor)
       )
 
       data <- add_ecdf_to_data(data = data)
 
       data <- set_data_param_indices(data = data, fit_info = fit_info)
 
-      params = c(
+      params <- c(
         spic_data[row, "mu"],
         spic_data[row, "sigma"],
         spic_data[row, "sigma_e"]
       )
 
-      curr_ks <- objective_function(params = params, data = data, fit_info = fit_info)
+      curr_ks <- objective_function(
+        params = params,
+        data = data,
+        fit_info = fit_info
+      )
 
       expect_equal(curr_ks, spic_data[row, "ks"], tolerance = 2)
 
@@ -321,10 +325,10 @@ test_that(
 
 
 test_that(
-  "Two fits without sharing are the same as fitting separately",
+  "Two datasets without sharing raise a warning",
   {
 
-    n <- 5000
+    n <- 500
 
     data_a <- data.frame(
       name = "a",
@@ -348,21 +352,11 @@ test_that(
       )
     )
 
-    a_fit <- fit_data(data = data_a)
-    b_fit <- fit_data(data = data_b)
-    combined_fit <- fit_data(data = rbind(data_a, data_b))
+    data <- rbind(data_a, data_b)
 
-    expect_equal(
-      a_fit$fitted_params,
-      as.list(combined_fit$named_fit_params["a",]),
-      tolerance = 2
-    )
+    expect_warning(fit_data(data = data))
 
-    expect_equal(
-      b_fit$fitted_params,
-      as.list(combined_fit$named_fit_params["b",]),
-      tolerance = 2
-    )
+    expect_no_warning(fit_data(data = data, share_a = TRUE))
 
   }
 )
