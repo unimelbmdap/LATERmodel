@@ -1,0 +1,362 @@
+test_that(
+  "erf is as expected",
+  {
+    x <- c(-2, -1, 0, 1, 2)
+    # compare against `scipy.special.erf`
+    expect_equal(
+      erf(x = x),
+      c(-0.99532227, -0.84270079, 0, 0.84270079, 0.99532227)
+    )
+  }
+)
+
+test_that(
+  "parameter unpacking works",
+  {
+
+    # some dummy values for the parameters
+    a <- c(1, 2)
+    sigma <- c(3, 4)
+    sigma_e <- c(5, 6)
+
+    for (n_a in c(1, 2)) {
+      for (n_sigma in c(1, 2)) {
+        for (n_sigma_e in c(0, 1, 2)) {
+
+          params <- c(a[1:n_a], sigma[1:n_sigma])
+
+          if (n_sigma_e > 0) {
+            params <- c(params, sigma_e[1:n_sigma_e])
+          }
+
+          unpacked <- unpack_params(
+            params = params,
+            n_a = n_a,
+            n_sigma = n_sigma,
+            n_sigma_e = n_sigma_e
+          )
+
+          expected <- list(
+            a = a[1:n_a],
+            sigma = sigma[1:n_sigma]
+          )
+
+          if (n_sigma_e > 0) {
+            expected$sigma_e <- sigma_e[1:n_sigma_e]
+          }
+
+          expect_equal(unpacked, expected)
+
+        }
+
+      }
+
+    }
+
+  }
+)
+
+
+test_that(
+  "LATER model fit (mu = 5, sigma = 1) is as expected",
+  {
+
+    seed <- 23256312
+
+    # Carpenter & Noorani (2023), Figure 1.15
+    later_mu <- 5
+    later_sd <- 1
+    early_sd <- NULL
+
+    n <- 5000
+
+    times <- simulate_dataset(
+      n = n,
+      later_mu = later_mu,
+      later_sd = later_sd,
+      early_sd = early_sd,
+      seed = seed
+    )
+
+    data <- data.frame(name = "test", promptness = 1 / times)
+
+    fit <- fit_data(data = data)
+
+    expect_equal(
+      fit$fitted_params$mu,
+      5.004784,
+      tolerance = 6
+    )
+    expect_equal(
+      fit$fitted_params$sigma,
+      0.9956403,
+      tolerance = 6
+    )
+
+  }
+)
+
+
+test_that(
+  "LATER model fit (mu = 5, sigma = 0.5, sigma_e = 3) is as expected",
+  {
+
+    seed <- 946395130
+
+    # Carpenter & Noorani (2023), Figure 2.5
+    later_mu <- 5
+    later_sd <- 0.5
+    early_sd <- 3
+
+    n <- 1000
+
+    times <- simulate_dataset(
+      n = n,
+      later_mu = later_mu,
+      later_sd = later_sd,
+      early_sd = early_sd,
+      seed = seed
+    )
+
+    data <- data.frame(name = "test", promptness = 1 / times)
+
+    fit <- fit_data(data = data, with_early_component = TRUE)
+
+    expect_equal(
+      fit$fitted_params$mu,
+      5.01478,
+      tolerance = 6
+    )
+    expect_equal(
+      fit$fitted_params$sigma,
+      0.5054952,
+      tolerance = 6
+    )
+    expect_equal(
+      fit$fitted_params$sigma_e,
+      3.156108,
+      tolerance = 6
+    )
+
+  }
+)
+
+
+test_that(
+  "ECDF matches the application for C&W1995 (A, p50)",
+  {
+
+    # copied from the application log for this dataset
+    application_pcnt <- c(
+      0.29,
+      0.59,
+      0.73,
+      0.95,
+      1.54,
+      2.78,
+      6.15,
+      12.82,
+      21.47,
+      35.02,
+      49.96,
+      60,
+      71.14,
+      79.41,
+      87.11,
+      91.36,
+      93.04,
+      94.65,
+      96.78,
+      97.73,
+      98.53,
+      99.27,
+      99.49,
+      99.93,
+      100
+    )
+
+    times <- carpenter_williams_1995 |>
+      dplyr::filter(
+        .data$participant == "a",
+        .data$condition == "p50",
+      ) |>
+      dplyr::pull("time")
+
+    promptness <- 1 / (times / 1000)
+
+    p <- promptness_ecdf(promptness = promptness, eval_unique = TRUE)
+    pcnt <- p$y * 100
+
+    expect_equal(
+      100 - pcnt,
+      application_pcnt,
+      tolerance = 2
+    )
+
+  }
+)
+
+
+test_that(
+  "Fitted KS values are similar to SPIC output at its fit values",
+  {
+
+    conditions <- c("p05", "p10", "p25", "p50", "p75", "p90", "p95")
+    participants <- c("a", "b")
+
+    spic_data <- data.frame(
+      participant = rep(participants, times = rep(length(conditions), 2)),
+      condition = rep(conditions, 2),
+      ks = c(
+        0.042,
+        0.027,
+        0.016,
+        0.014,
+        0.007,
+        0.01,
+        0.017,
+        0.05,
+        0.029,
+        0.012,
+        0.011,
+        0.009,
+        0.011,
+        0.019
+      ),
+      mu = c(
+        3.64,
+        4.02,
+        4.09,
+        4.93,
+        5.26,
+        5.43,
+        5.53,
+        3.6,
+        4,
+        4.61,
+        5.07,
+        5.17,
+        5.49,
+        5.67
+      ),
+      sigma = c(
+        0.61,
+        0.73,
+        0.67,
+        0.74,
+        0.78,
+        0.77,
+        0.85,
+        0.7,
+        0.76,
+        0.94,
+        1.04,
+        1.06,
+        1.16,
+        1.18
+      ),
+      sigma_e = c(
+        0.13,
+        1.49,
+        3.02,
+        3.06,
+        4.03,
+        4.8,
+        5.26,
+        1.13,
+        1.01,
+        1.91,
+        1.6,
+        3.97,
+        4.21,
+        5.34
+      )
+    )
+
+    fit_info <- list(
+      n_a = 1,
+      n_mu = 1,
+      n_sigma = 1,
+      n_sigma_e = 1,
+      share_sigma = FALSE,
+      share_sigma_e = FALSE,
+      intercept_form = FALSE,
+      use_minmax = FALSE
+    )
+
+    for (row in seq_len(nrow(spic_data))) {
+
+      data <- (
+        carpenter_williams_1995 |>
+          dplyr::filter(
+            .data$participant == spic_data[row, "participant"],
+            .data$condition == spic_data[row, "condition"]
+          ) |>
+          dplyr::mutate(
+            name = "ks_test",
+            promptness = 1 / (.data$time / 1000),
+            name_factor = factor(.data$name)
+          ) |>
+          dplyr::select(name, promptness, name_factor)
+      )
+
+      data <- add_ecdf_to_data(data = data)
+
+      data <- set_data_param_indices(data = data, fit_info = fit_info)
+
+      params <- c(
+        spic_data[row, "mu"],
+        spic_data[row, "sigma"],
+        spic_data[row, "sigma_e"]
+      )
+
+      curr_ks <- objective_function(
+        params = params,
+        data = data,
+        fit_info = fit_info
+      )
+
+      expect_equal(curr_ks, spic_data[row, "ks"], tolerance = 2)
+
+    }
+
+  }
+)
+
+
+test_that(
+  "Two datasets without sharing raise a warning",
+  {
+
+    n <- 500
+
+    data_a <- data.frame(
+      name = "a",
+      promptness = 1 / simulate_dataset(
+        n = n,
+        later_mu = 5,
+        later_sd = 1,
+        early_sd = NULL,
+        seed = 4685513
+      )
+    )
+
+    data_b <- data.frame(
+      name = "b",
+      promptness = 1 / simulate_dataset(
+        n = n,
+        later_mu = 4,
+        later_sd = 1.5,
+        early_sd = NULL,
+        seed = 6448
+      )
+    )
+
+    data <- rbind(data_a, data_b)
+
+    expect_warning(fit_data(data = data))
+
+    expect_no_warning(fit_data(data = data, share_a = TRUE))
+
+  }
+)
