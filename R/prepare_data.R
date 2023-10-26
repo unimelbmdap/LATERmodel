@@ -49,9 +49,9 @@ prepare_data <- function(rt, time_unit = "ms") {
     dplyr::group_by(.data$color) %>%
     dplyr::mutate(
       promptness = 1 / .data$time,
-      e_cdf = stats::ecdf(.data$time)(.data$time)
-    ) %>%
-    dplyr::filter(.data$e_cdf < 1)
+      e_cdf = LATERmodel::promptness_ecdf(.data$promptness),
+      e_cdf = e_cdf$y
+    )
 }
 
 #' If colors are not defined, add colors from Color Brewer, up to 8
