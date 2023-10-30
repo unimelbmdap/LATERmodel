@@ -12,6 +12,10 @@
 #' @param use_minmax If `FALSE` (the default), the optimiser targets the sum
 #'  of the goodness-of-fit values across datasets; if `TRUE`, it instead
 #'  targets the maximum of the goodness-of-fit values across datasets.
+#' @param fit_criterion String indicating the criterion used to optimise the
+#'  fit by seeking its minimum.
+#'   * `ks`: Kolmogorov-Smirnov statistic.
+#'   * `neg_loglike`: Negative log-likelihood.
 #' @returns A list of fitting arguments and outcomes.
 #' * `fitted_params` is a named list of fitted parameter values.
 #' * `named_fit_params` is a data frame with rows given by the dataset names
@@ -33,8 +37,14 @@ fit_data <- function(
   share_sigma_e = FALSE,
   with_early_component = FALSE,
   intercept_form = FALSE,
-  use_minmax = FALSE
+  use_minmax = FALSE,
+  fit_criterion = "ks"
 ) {
+
+  # only support fitting KS or neg loglike criteria
+  if (!(fit_criterion %in% c("ks", "neg_loglike"))) {
+    rlang::abort("Fit criterion must be `ks` or `neg_loglike`")
+  }
 
   # initialise a container with the provided arguments
   fit_info <- list(
@@ -43,7 +53,8 @@ fit_data <- function(
     share_sigma_e = share_sigma_e,
     with_early_component = with_early_component,
     intercept_form = intercept_form,
-    use_minmax = use_minmax
+    use_minmax = use_minmax,
+    fit_criterion = fit_criterion
   )
 
   # we only need to deal with the `name` and `promptness` columns in
@@ -58,7 +69,9 @@ fit_data <- function(
   fit_info$n_datasets <- length(fit_info$datasets)
 
   # only support fitting one or two datasets at a time
-  stopifnot(fit_info$n_datasets %in% c(1, 2))
+  if (!(fit_info$n_datasets %in% c(1, 2))) {
+    rlang::abort("The number of datasets must be either 1 or 2")
+  }
 
   if (fit_info$n_datasets == 2 && !any(share_a, share_sigma, share_sigma_e)) {
     warning("Two datasets were provided, but there are no shared parameters")
@@ -68,7 +81,9 @@ fit_data <- function(
   # datasets and shared parameter arrangement
   fit_info <- set_param_counts(fit_info = fit_info)
 
-  data <- add_ecdf_to_data(data = data)
+  if (fit_info$fit_criterion == "ks") {
+    data <- add_ecdf_to_data(data = data)
+  }
 
   # add new columns to the dataframe describing the parameter index for
   # each measurement
@@ -301,32 +316,56 @@ objective_function <- function(params, data, fit_info) {
     )
   )
 
-  ks <- data |>
-    dplyr::group_by(.data$name) |>
-    dplyr::mutate(
-      # calculate the expected cumulative probability of each data point
-      # under the model
-      p = model_cdf(
-        q = .data$promptness,
-        later_mu = labelled_params$mu[.data$i_mu],
-        later_sd = labelled_params$sigma[.data$i_sigma],
-        early_sd = labelled_params$sigma_e[.data$i_sigma_e]
-      )
-    ) |>
-    dplyr::summarize(
-      ks = calc_ks_stat(.data$ecdf_p, .data$p)
-    ) |>
-    dplyr::pull(ks)
+  if (fit_info$fit_criterion == "ks") {
+
+    fit_val <- data |>
+      dplyr::group_by(.data$name) |>
+      dplyr::mutate(
+        # calculate the expected cumulative probability of each data point
+        # under the model
+        p = model_cdf(
+          q = .data$promptness,
+          later_mu = labelled_params$mu[.data$i_mu],
+          later_sd = labelled_params$sigma[.data$i_sigma],
+          early_sd = labelled_params$sigma_e[.data$i_sigma_e]
+        )
+      ) |>
+      dplyr::summarize(
+        ks = calc_ks_stat(.data$ecdf_p, .data$p)
+      ) |>
+      dplyr::pull(.data$ks)
+
+  } else if (fit_info$fit_criterion == "neg_loglike") {
+
+    fit_val <- data |>
+      dplyr::group_by(.data$name) |>
+      dplyr::mutate(
+        loglike = model_pdf(
+          x = .data$promptness,
+          later_mu = labelled_params$mu[.data$i_mu],
+          later_sd = labelled_params$sigma[.data$i_sigma],
+          early_sd = labelled_params$sigma_e[.data$i_sigma_e],
+          log = TRUE
+        ),
+      ) |>
+      dplyr::summarize(
+        neg_loglike = -1 * sum(.data$loglike)
+      ) |>
+      dplyr::pull(.data$neg_loglike)
+
+  } else {
+    stop("Unknown fit criterion")
+  }
 
   if (fit_info$use_minmax) {
     # "minimise the worst of the fits"
-    ks <- max(ks)
+    fit_val <- max(fit_val)
   } else {
     # "minimise the overall goodness-of-fit statistic"
-    ks <- sum(ks)
+    fit_val <- sum(fit_val)
   }
 
-  return(ks)
+  return(fit_val)
 
 }
 

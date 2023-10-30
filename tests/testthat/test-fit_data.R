@@ -84,13 +84,54 @@ test_that(
 
     expect_equal(
       fit$fitted_params$mu,
+      later_mu,
+      tolerance = 0.01
+    )
+    expect_equal(
+      fit$fitted_params$sigma,
+      later_sd,
+      tolerance = 0.01
+    )
+
+  }
+)
+
+
+test_that(
+  "LATER model fit (mu = 5, sigma = 1, criterion = 'neg_loglike')
+  is as expected",
+  {
+
+    seed <- 23256312
+
+    # Carpenter & Noorani (2023), Figure 1.15
+    later_mu <- 5
+    later_sd <- 1
+    early_sd <- NULL
+
+    n <- 5000
+
+    times <- simulate_dataset(
+      n = n,
+      later_mu = later_mu,
+      later_sd = later_sd,
+      early_sd = early_sd,
+      seed = seed
+    )
+
+    data <- data.frame(name = "test", promptness = 1 / times)
+
+    fit <- fit_data(data = data, fit_criterion = "neg_loglike")
+
+    expect_equal(
+      fit$fitted_params$mu,
       5.004784,
-      tolerance = 6
+      tolerance = 0.01
     )
     expect_equal(
       fit$fitted_params$sigma,
       0.9956403,
-      tolerance = 6
+      tolerance = 0.01
     )
 
   }
@@ -124,23 +165,72 @@ test_that(
 
     expect_equal(
       fit$fitted_params$mu,
-      5.01478,
-      tolerance = 6
+      later_mu,
+      tolerance = 0.01
     )
     expect_equal(
       fit$fitted_params$sigma,
-      0.5054952,
-      tolerance = 6
+      later_sd,
+      tolerance = 0.01
     )
     expect_equal(
       fit$fitted_params$sigma_e,
-      3.156108,
-      tolerance = 6
+      3.2,
+      tolerance = 0.1
     )
 
   }
 )
 
+
+test_that(
+  "LATER model fit (mu = 5, sigma = 0.5, sigma_e = 3,
+  fit_criterion = 'neg_loglike') is as expected",
+  {
+
+    seed <- 946395130
+
+    # Carpenter & Noorani (2023), Figure 2.5
+    later_mu <- 5
+    later_sd <- 0.5
+    early_sd <- 3
+
+    n <- 1000
+
+    times <- simulate_dataset(
+      n = n,
+      later_mu = later_mu,
+      later_sd = later_sd,
+      early_sd = early_sd,
+      seed = seed
+    )
+
+    data <- data.frame(name = "test", promptness = 1 / times)
+
+    fit <- fit_data(
+      data = data,
+      with_early_component = TRUE,
+      fit_criterion = "neg_loglike"
+    )
+
+    expect_equal(
+      fit$fitted_params$mu,
+      later_mu,
+      tolerance = 0.01
+    )
+    expect_equal(
+      fit$fitted_params$sigma,
+      later_sd,
+      tolerance = 0.03
+    )
+    expect_equal(
+      fit$fitted_params$sigma_e,
+      3.2,
+      tolerance = 0.1
+    )
+
+  }
+)
 
 test_that(
   "ECDF matches the application for C&W1995 (A, p50)",
@@ -190,7 +280,7 @@ test_that(
     expect_equal(
       100 - pcnt,
       application_pcnt,
-      tolerance = 2
+      tolerance = 0.01
     )
 
   }
@@ -281,7 +371,8 @@ test_that(
       share_sigma = FALSE,
       share_sigma_e = FALSE,
       intercept_form = FALSE,
-      use_minmax = FALSE
+      use_minmax = FALSE,
+      fit_criterion = "ks"
     )
 
     for (row in seq_len(nrow(spic_data))) {
@@ -316,7 +407,11 @@ test_that(
         fit_info = fit_info
       )
 
-      expect_equal(curr_ks, spic_data[row, "ks"], tolerance = 2)
+      expect_equal(
+        curr_ks,
+        spic_data[row, "ks"],
+        tolerance = 0.03
+      )
 
     }
 
