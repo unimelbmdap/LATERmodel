@@ -16,7 +16,8 @@ Optionally may contain a column \code{name} to use as labels for each dataset.}
 must be one of "ms", "ds", or "s".}
 }
 \value{
-A dataframe with columns: \code{time}, \code{color}, \code{name}, \code{promptness}, and \code{e_cdf}.
+A dataframe with columns: \code{time}, \code{color}, \code{name}, \code{promptness},
+and \code{e_cdf}.
 }
 \description{
 Prepares data for reciprobit plot

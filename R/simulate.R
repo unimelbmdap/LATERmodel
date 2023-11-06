@@ -15,13 +15,11 @@
 #' simulate_dataset(n = 100, later_mu = 5, later_sd = 1, early_sd = 5)
 #' @export
 simulate_dataset <- function(
-  n,
-  later_mu,
-  later_sd,
-  early_sd = NULL,
-  seed = NULL
-) {
-
+    n,
+    later_mu,
+    later_sd,
+    early_sd = NULL,
+    seed = NULL) {
   if (is.null(seed)) {
     seed <- sample.int(n = .Machine$integer.max, size = 1)
   }
@@ -44,27 +42,22 @@ simulate_dataset <- function(
   times <- 1 / draws
 
   return(times)
-
 }
 
 # re-draws if sample is <= 0
 draw_samples <- function(n, mean, sd) {
-
   samples <- rep(x = -1, times = n)
 
-  repeat(
-    {
-      n_lte_zero <- sum(samples <= 0)
+  repeat({
+    n_lte_zero <- sum(samples <= 0)
 
-      if (n_lte_zero == 0) {
-        break
-      }
-      samples[samples <= 0] <- stats::rnorm(
-        n = n_lte_zero, mean = mean, sd = sd
-      )
+    if (n_lte_zero == 0) {
+      break
     }
-  )
+    samples[samples <= 0] <- stats::rnorm(
+      n = n_lte_zero, mean = mean, sd = sd
+    )
+  })
 
   return(samples)
-
 }
