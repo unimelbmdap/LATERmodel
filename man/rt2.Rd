@@ -16,7 +16,8 @@ A dataframe of 200 reaction times for two participants: mu3 and mu4
 }
 }
 \source{
-mu3 = LATER 1 mu 3 sig 0.5 R, count = 200; mu4 = LATER 2 mu 4 sig 0.5 R, count = 200 - SPIC program, developed by R.H.S. Carpenter
+mu3 = LATER 1 mu 3 sig 0.5 R, count = 200; mu4 = LATER 2 mu 4 sig 0.5
+R, count = 200 - SPIC program, developed by R.H.S. Carpenter
 }
 \usage{
 rt2

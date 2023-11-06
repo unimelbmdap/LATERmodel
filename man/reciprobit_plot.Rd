@@ -7,11 +7,12 @@
 reciprobit_plot(plot_data)
 }
 \arguments{
-\item{plot_data}{A dataframe with columns: \code{time}, \code{color}, \code{name}, \code{promptness},
-and \code{e_cdf}; one color per name (participant)}
+\item{plot_data}{A dataframe with columns: \code{time}, \code{color}, \code{name},
+\code{promptness}, and \code{e_cdf}; one color per name (participant)}
 }
 \value{
-A reciprobit plot with the cumulative probability distribution of the reaction times
+A reciprobit plot with the cumulative probability distribution of
+the reaction times
 }
 \description{
 Plot reaction times in reciprobit axes
