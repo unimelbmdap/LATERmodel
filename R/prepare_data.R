@@ -18,10 +18,10 @@ prepare_data <- function(rt, time_unit = "ms") {
   if (typeof(rt) == "double") {
     plot_data <- data.frame(
       time = convert_to_seconds(rt, time_unit = time_unit)
-    ) %>%
+    ) |>
       dplyr::mutate(color = "#1B9E77")
   } else if (typeof(rt) == "list") {
-    plot_data <- rt %>%
+    plot_data <- rt |>
       dplyr::mutate(
         time = convert_to_seconds(.data$time, time_unit = time_unit)
       )
@@ -36,7 +36,7 @@ prepare_data <- function(rt, time_unit = "ms") {
         name = match(plot_data$color, unique(plot_data$color))
       )
     } else {
-      plot_data <- plot_data %>%
+      plot_data <- plot_data |>
         dplyr::mutate(
           name = as.factor(paste(.data$participant, .data$condition, sep = "_"))
         )
@@ -44,13 +44,12 @@ prepare_data <- function(rt, time_unit = "ms") {
     }
   }
 
-  plot_data %>%
-    dplyr::arrange(.data$color, .data$time) %>%
-    dplyr::group_by(.data$color) %>%
+  plot_data |>
+    dplyr::arrange(.data$color, .data$time) |>
+    dplyr::group_by(.data$color) |>
     dplyr::mutate(
       promptness = 1 / .data$time,
-      e_cdf = LATERmodel::promptness_ecdf(.data$promptness),
-      e_cdf = e_cdf$y
+      e_cdf = promptness_ecdf(.data$promptness)$y
     )
 }
 
@@ -78,12 +77,13 @@ add_colors <- function(df) {
     "#a6761d",
     "#666666"
   )
-  df %>% dplyr::mutate(
-    color = factor(
-      color_brewer_colors[as.numeric(as.factor(.data$name))],
-      levels = color_brewer_colors
+  df |>
+    dplyr::mutate(
+      color = factor(
+        color_brewer_colors[as.numeric(as.factor(.data$name))],
+        levels = color_brewer_colors
+      )
     )
-  )
 }
 
 #' Convert reaction time vector to seconds. Used only internally.
