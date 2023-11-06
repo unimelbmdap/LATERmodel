@@ -21,6 +21,7 @@
 #' * `named_fit_params` is a data frame with rows given by the dataset names
 #'   and columns given by the parameter names.
 #' * `loglike` is the overall log-likelihood of the fit.
+#' * `aic` is the "Akaike's 'An Information Criterion'" value for the model.
 #' * `optim_result` is the raw output from `stats::optim`.
 #' @examples
 #' data <- data.frame(name = "test", promptness = rnorm(100, 3, 1))
@@ -126,6 +127,11 @@ fit_data <- function(
 
   # compute the overall fit log-likelihood
   fit_info$loglike <- calc_loglike(data = data, fit_info = fit_info)
+  # and the AIC
+  fit_info$aic <- calc_aic(
+    loglike = fit_info$loglike,
+    n_params = fit_info$n_params
+  )
 
   return(fit_info)
 
@@ -191,7 +197,6 @@ model_pdf <- function(x, later_mu, later_sd, early_sd = NULL, log = FALSE) {
 
 }
 
-
 #' Compute the empirical cumulative distribution function for promptness
 #'
 #' @param promptness A vector of promptness values (1 / times)
@@ -227,7 +232,6 @@ promptness_ecdf <- function(
 
 }
 
-
 calc_loglike <- function(data, fit_info) {
 
   loglike <- data |>
@@ -245,6 +249,13 @@ calc_loglike <- function(data, fit_info) {
 
   return(sum(loglike))
 
+}
+
+# calculate Akaike's 'An Information Criterion'
+calc_aic <- function(loglike, n_params) {
+  k <- 2
+  aic <- -2 * loglike + k * n_params
+  return(aic)
 }
 
 # parses a vector of parameters into a named list
@@ -266,7 +277,6 @@ unpack_params <- function(params, n_a, n_sigma, n_sigma_e) {
 
 }
 
-
 add_named_fit_params <- function(fit_info) {
 
   df <- data.frame(
@@ -280,7 +290,6 @@ add_named_fit_params <- function(fit_info) {
   return(df)
 
 }
-
 
 convert_a_to_mu_and_k <- function(a, sigma, intercept_form) {
 
@@ -369,7 +378,6 @@ objective_function <- function(params, data, fit_info) {
 
 }
 
-
 # uses the sample mean and standard deviation of the promptness values
 # to create optimisation starting points
 calc_start_points <- function(data, fit_info) {
@@ -419,7 +427,6 @@ calc_ks_stat <- function(ecdf_p, cdf_p) {
   max(abs(ecdf_p - cdf_p))
 }
 
-
 # evaluates the cumulative density distribution when there are both early
 # and late components and the draw is given by the maximum of the two
 pnorm_with_early <- function(q, later_mu, later_sd, early_sd) {
@@ -439,7 +446,6 @@ pnorm_with_early <- function(q, later_mu, later_sd, early_sd) {
   return(p)
 
 }
-
 
 # evaluates the probability density function when there are both early
 # and late components and the draw is given by the maximum of the two
@@ -490,10 +496,11 @@ set_param_counts <- function(fit_info) {
     fit_info$n_a
   )
 
+  fit_info$n_params <- fit_info$n_a + fit_info$n_sigma + fit_info$n_sigma_e
+
   return(fit_info)
 
 }
-
 
 # creates `i_mu`, `i_sigma`, and `i_sigma_e` columns in the data
 # that describe the indices of the relevant parameters
@@ -509,7 +516,6 @@ set_data_param_indices <- function(data, fit_info) {
   return(data)
 
 }
-
 
 # calculate the ECDF and evaluate at each measurement
 add_ecdf_to_data <- function(data) {

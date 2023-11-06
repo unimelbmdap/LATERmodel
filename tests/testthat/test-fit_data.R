@@ -455,3 +455,43 @@ test_that(
 
   }
 )
+
+
+test_that(
+  "AIC gives expected results",
+  {
+
+    # compared against Python statsmodels (0.14.0)
+    expect_equal(
+      calc_aic(loglike = -10000, n_params = 1),
+      20002
+    )
+
+    expect_equal(
+      calc_aic(loglike = -10000, n_params = 3),
+      20006
+    )
+
+    expect_equal(
+      calc_aic(loglike = -10000, n_params = 10),
+      20020
+    )
+
+    expect_equal(
+      calc_aic(loglike = -50000, n_params = 1),
+      100002
+    )
+
+    expect_equal(
+      calc_aic(loglike = -50000, n_params = 3),
+      100006
+    )
+
+    expect_equal(
+      calc_aic(loglike = -50000, n_params = 10),
+      100020
+    )
+
+
+  }
+)

@@ -47,6 +47,7 @@ A list of fitting arguments and outcomes.
 \item \code{named_fit_params} is a data frame with rows given by the dataset names
 and columns given by the parameter names.
 \item \code{loglike} is the overall log-likelihood of the fit.
+\item \code{aic} is the "Akaike's 'An Information Criterion'" value for the model.
 \item \code{optim_result} is the raw output from \code{stats::optim}.
 }
 }
