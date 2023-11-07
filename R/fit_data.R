@@ -32,16 +32,14 @@
 #' )
 #' @export
 fit_data <- function(
-  data,
-  share_a = FALSE,
-  share_sigma = FALSE,
-  share_sigma_e = FALSE,
-  with_early_component = FALSE,
-  intercept_form = FALSE,
-  use_minmax = FALSE,
-  fit_criterion = "ks"
-) {
-
+    data,
+    share_a = FALSE,
+    share_sigma = FALSE,
+    share_sigma_e = FALSE,
+    with_early_component = FALSE,
+    intercept_form = FALSE,
+    use_minmax = FALSE,
+    fit_criterion = "ks") {
   # only support fitting KS or neg loglike criteria
   if (!(fit_criterion %in% c("ks", "neg_loglike"))) {
     rlang::abort("Fit criterion must be `ks` or `neg_loglike`")
@@ -139,7 +137,6 @@ fit_data <- function(
   )
 
   return(fit_info)
-
 }
 
 #' Evalulate the cumulative distribution function under the model.
@@ -155,7 +152,6 @@ fit_data <- function(
 #' model_cdf(q = 1, later_mu = 1, later_sd = 1, early_sd = 3)
 #' @export
 model_cdf <- function(q, later_mu, later_sd, early_sd = NULL) {
-
   if (is.null(early_sd)) {
     p <- stats::pnorm(q = q, mean = later_mu, sd = later_sd)
   } else {
@@ -168,7 +164,6 @@ model_cdf <- function(q, later_mu, later_sd, early_sd = NULL) {
   }
 
   return(p)
-
 }
 
 #' Evalulate the probability density function under the model.
@@ -185,7 +180,6 @@ model_cdf <- function(q, later_mu, later_sd, early_sd = NULL) {
 #' model_pdf(x = 1, later_mu = 1, later_sd = 1, early_sd = 3)
 #' @export
 model_pdf <- function(x, later_mu, later_sd, early_sd = NULL, log = FALSE) {
-
   if (is.null(early_sd)) {
     p <- stats::dnorm(x = x, mean = later_mu, sd = later_sd, log = log)
   } else {
@@ -199,7 +193,6 @@ model_pdf <- function(x, later_mu, later_sd, early_sd = NULL, log = FALSE) {
   }
 
   return(p)
-
 }
 
 
@@ -219,11 +212,9 @@ model_pdf <- function(x, later_mu, later_sd, early_sd = NULL, log = FALSE) {
 #' p <- promptness_ecdf(promptness = rnorm(100, 3, 1))
 #' @export
 promptness_ecdf <- function(
-  promptness,
-  adjust_for_times = TRUE,
-  eval_unique = FALSE
-) {
-
+    promptness,
+    adjust_for_times = TRUE,
+    eval_unique = FALSE) {
   x <- if (eval_unique) unique(promptness) else promptness
 
   if (adjust_for_times) {
@@ -235,12 +226,10 @@ promptness_ecdf <- function(
   }
 
   return(data.frame(x = x, y = y))
-
 }
 
 
 calc_loglike <- function(data, fit_info) {
-
   loglike <- data |>
     dplyr::group_by(.data$name) |>
     dplyr::mutate(
@@ -255,7 +244,6 @@ calc_loglike <- function(data, fit_info) {
     dplyr::pull(loglike)
 
   return(sum(loglike))
-
 }
 
 # calculate Akaike's 'An Information Criterion'
@@ -267,7 +255,6 @@ calc_aic <- function(loglike, n_params) {
 
 # parses a vector of parameters into a named list
 unpack_params <- function(params, n_a, n_sigma, n_sigma_e) {
-
   # first `n_a` items are the a parameters
   a <- params[1:n_a]
   # next are the sigma parameters
@@ -281,12 +268,10 @@ unpack_params <- function(params, n_a, n_sigma, n_sigma_e) {
   }
 
   return(labelled_params)
-
 }
 
 
 add_named_fit_params <- function(fit_info) {
-
   df <- data.frame(
     lapply(
       X = fit_info$fitted_params,
@@ -296,12 +281,10 @@ add_named_fit_params <- function(fit_info) {
   )
 
   return(df)
-
 }
 
 
 convert_a_to_mu_and_k <- function(a, sigma, intercept_form) {
-
   if (intercept_form) {
     k <- a
     mu <- k * sigma
@@ -311,13 +294,11 @@ convert_a_to_mu_and_k <- function(a, sigma, intercept_form) {
   }
 
   return(list(mu = mu, k = k))
-
 }
 
 # returns the KS statistic given a set of model parameter values
 # and the observed data
 objective_function <- function(params, data, fit_info) {
-
   labelled_params <- unpack_params(
     params = params,
     n_a = fit_info$n_a,
@@ -335,7 +316,6 @@ objective_function <- function(params, data, fit_info) {
   )
 
   if (fit_info$fit_criterion == "ks") {
-
     fit_val <- data |>
       dplyr::group_by(.data$name) |>
       dplyr::mutate(
@@ -352,9 +332,7 @@ objective_function <- function(params, data, fit_info) {
         ks = calc_ks_stat(.data$ecdf_p, .data$p)
       ) |>
       dplyr::pull(.data$ks)
-
   } else if (fit_info$fit_criterion == "neg_loglike") {
-
     fit_val <- data |>
       dplyr::group_by(.data$name) |>
       dplyr::mutate(
@@ -370,7 +348,6 @@ objective_function <- function(params, data, fit_info) {
         neg_loglike = -1 * sum(.data$loglike)
       ) |>
       dplyr::pull(.data$neg_loglike)
-
   } else {
     stop("Unknown fit criterion")
   }
@@ -384,14 +361,12 @@ objective_function <- function(params, data, fit_info) {
   }
 
   return(fit_val)
-
 }
 
 
 # uses the sample mean and standard deviation of the promptness values
 # to create optimisation starting points
 calc_start_points <- function(data, fit_info) {
-
   mu_values <- (
     data |>
       dplyr::group_by(.data$i_mu) |>
@@ -429,7 +404,6 @@ calc_start_points <- function(data, fit_info) {
   }
 
   return(start_points)
-
 }
 
 # calculates the Kolmogorov-Smirnov statistic
@@ -441,7 +415,6 @@ calc_ks_stat <- function(ecdf_p, cdf_p) {
 # evaluates the cumulative density distribution when there are both early
 # and late components and the draw is given by the maximum of the two
 pnorm_with_early <- function(q, later_mu, later_sd, early_sd) {
-
   early_mu <- 0
 
   # constrain the SDs to be >= 0
@@ -455,26 +428,24 @@ pnorm_with_early <- function(q, later_mu, later_sd, early_sd) {
   p <- early_p * later_p
 
   return(p)
-
 }
 
 
 # evaluates the probability density function when there are both early
 # and late components and the draw is given by the maximum of the two
 dnorm_with_early <- function(x, later_mu, later_sd, early_sd, log = FALSE) {
-
   early_mu <- 0
 
   p <- (
     (
       (
-        exp(-(((x - later_mu) ** 2) / (2 * later_sd ** 2)))
+        exp(-(((x - later_mu)**2) / (2 * later_sd**2)))
         * (1 + erf((x - early_mu) / (sqrt(2) * early_sd)))
       ) / later_sd
-      + (
-        exp(-(((x - early_mu) ** 2) / (2 * early_sd ** 2)))
-        * (1 + erf((x - later_mu) / (sqrt(2) * later_sd)))
-      ) / early_sd
+        + (
+          exp(-(((x - early_mu)**2) / (2 * early_sd**2)))
+          * (1 + erf((x - later_mu) / (sqrt(2) * later_sd)))
+        ) / early_sd
     ) / (2 * sqrt(2 * pi))
   )
 
@@ -483,7 +454,6 @@ dnorm_with_early <- function(x, later_mu, later_sd, early_sd, log = FALSE) {
   }
 
   return(p)
-
 }
 
 erf <- function(x) {
@@ -493,7 +463,6 @@ erf <- function(x) {
 # works out how many parameters there are, given the sharing amongst
 # the parameters
 set_param_counts <- function(fit_info) {
-
   fit_info$n_a <- ifelse(fit_info$share_a, 1, fit_info$n_datasets)
   fit_info$n_sigma <- ifelse(fit_info$share_sigma, 1, fit_info$n_datasets)
   fit_info$n_sigma_e <- ifelse(
@@ -511,14 +480,12 @@ set_param_counts <- function(fit_info) {
   fit_info$n_params <- fit_info$n_a + fit_info$n_sigma + fit_info$n_sigma_e
 
   return(fit_info)
-
 }
 
 
 # creates `i_mu`, `i_sigma`, and `i_sigma_e` columns in the data
 # that describe the indices of the relevant parameters
 set_data_param_indices <- function(data, fit_info) {
-
   i_dataset <- as.integer(data$name_factor)
 
   # remember that `ifelse` is strange for vectors!
@@ -527,13 +494,11 @@ set_data_param_indices <- function(data, fit_info) {
   data$i_sigma_e <- if (fit_info$share_sigma_e) 1 else i_dataset
 
   return(data)
-
 }
 
 
 # calculate the ECDF and evaluate at each measurement
 add_ecdf_to_data <- function(data) {
-
   data <- data |>
     dplyr::group_by(.data$name) |>
     dplyr::mutate(
@@ -541,5 +506,4 @@ add_ecdf_to_data <- function(data) {
     )
 
   return(data)
-
 }
