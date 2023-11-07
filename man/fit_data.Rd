@@ -11,8 +11,7 @@ fit_data(
   share_sigma_e = FALSE,
   with_early_component = FALSE,
   intercept_form = FALSE,
-  use_minmax = FALSE,
-  fit_criterion = "ks"
+  use_minmax = FALSE
 )
 }
 \arguments{
@@ -32,13 +31,6 @@ the mu parameter in the model; if \code{TRUE}, the \code{a} parameter describes 
 \item{use_minmax}{If \code{FALSE} (the default), the optimiser targets the sum
 of the goodness-of-fit values across datasets; if \code{TRUE}, it instead
 targets the maximum of the goodness-of-fit values across datasets.}
-
-\item{fit_criterion}{String indicating the criterion used to optimise the
-fit by seeking its minimum.
-\itemize{
-\item \code{ks}: Kolmogorov-Smirnov statistic.
-\item \code{neg_loglike}: Negative log-likelihood.
-}}
 }
 \value{
 A list of fitting arguments and outcomes.
@@ -47,7 +39,6 @@ A list of fitting arguments and outcomes.
 \item \code{named_fit_params} is a data frame with rows given by the dataset names
 and columns given by the parameter names.
 \item \code{loglike} is the overall log-likelihood of the fit.
-\item \code{aic} is the "Akaike's 'An Information Criterion'" value for the model.
 \item \code{optim_result} is the raw output from \code{stats::optim}.
 }
 }
