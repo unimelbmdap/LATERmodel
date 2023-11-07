@@ -32,6 +32,8 @@ Depends:
     R (>= 4.1)
 LazyData: true
 Suggests: 
+    lintr,
+    styler,
     testthat (>= 3.0.0),
     vdiffr,
     withr
