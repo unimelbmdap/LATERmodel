@@ -442,10 +442,10 @@ dnorm_with_early <- function(x, later_mu, later_sd, early_sd, log = FALSE) {
         exp(-(((x - later_mu)**2) / (2 * later_sd**2)))
         * (1 + erf((x - early_mu) / (sqrt(2) * early_sd)))
       ) / later_sd
-        + (
-          exp(-(((x - early_mu)**2) / (2 * early_sd**2)))
-          * (1 + erf((x - later_mu) / (sqrt(2) * later_sd)))
-        ) / early_sd
+      + (
+        exp(-(((x - early_mu)**2) / (2 * early_sd**2)))
+        * (1 + erf((x - later_mu) / (sqrt(2) * later_sd)))
+      ) / early_sd
     ) / (2 * sqrt(2 * pi))
   )
 
