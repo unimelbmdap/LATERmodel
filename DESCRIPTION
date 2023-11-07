@@ -1,9 +1,23 @@
 Package: LATERmodel
 Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Version: 0.0.1.0
 Authors@R: 
-    person("Maria del Mar", "Quiroga", , "mar.quiroga@unimelb.edu.au", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-8943-2808"))
+    c(person(given = "Maria del Mar",
+             family = "Quiroga",
+             role = c("aut", "cre"),
+             email = "mar.quiroga@unimelb.edu.au",
+             comment = c(ORCID = "0000-0002-8943-2808")),
+      person(given = "Damien",
+             family = "Mannion",
+             role = "aut",
+             email = "damien@djmannion.net",
+             comment = c(ORCID = "0000-0001-5520-632X")),
+      person(given = "Edoardo",
+             family = "Tescari",
+             role = "ctb",
+             email = "e.tescari@unimelb.edu.au",
+             comment = c(ORCID = "0000-0003-1157-4897"))
+    )
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -12,15 +26,15 @@ RoxygenNote: 7.2.3
 Imports: 
     dplyr,
     ggplot2,
-    magrittr,
     rlang,
-    stats,
-    vdiffr
+    stats
 Depends: 
-    R (>= 2.10)
+    R (>= 4.1)
 LazyData: true
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    vdiffr,
+    withr
 Config/testthat/edition: 3
 URL: https://github.com/unimelbmdap/LATERmodel
 BugReports: https://github.com/unimelbmdap/LATERmodel/issues

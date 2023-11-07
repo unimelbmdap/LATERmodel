@@ -13,7 +13,6 @@ test_that(
 test_that(
   "parameter unpacking works",
   {
-
     # some dummy values for the parameters
     a <- c(1, 2)
     sigma <- c(3, 4)
@@ -22,7 +21,6 @@ test_that(
     for (n_a in c(1, 2)) {
       for (n_sigma in c(1, 2)) {
         for (n_sigma_e in c(0, 1, 2)) {
-
           params <- c(a[1:n_a], sigma[1:n_sigma])
 
           if (n_sigma_e > 0) {
@@ -46,13 +44,9 @@ test_that(
           }
 
           expect_equal(unpacked, expected)
-
         }
-
       }
-
     }
-
   }
 )
 
@@ -60,7 +54,6 @@ test_that(
 test_that(
   "LATER model fit (mu = 5, sigma = 1) is as expected",
   {
-
     seed <- 23256312
 
     # Carpenter & Noorani (2023), Figure 1.15
@@ -92,7 +85,6 @@ test_that(
       0.9956403,
       tolerance = 6
     )
-
   }
 )
 
@@ -100,7 +92,6 @@ test_that(
 test_that(
   "LATER model fit (mu = 5, sigma = 0.5, sigma_e = 3) is as expected",
   {
-
     seed <- 946395130
 
     # Carpenter & Noorani (2023), Figure 2.5
@@ -137,7 +128,6 @@ test_that(
       3.156108,
       tolerance = 6
     )
-
   }
 )
 
@@ -145,7 +135,6 @@ test_that(
 test_that(
   "ECDF matches the application for C&W1995 (A, p50)",
   {
-
     # copied from the application log for this dataset
     application_pcnt <- c(
       0.29,
@@ -192,7 +181,6 @@ test_that(
       application_pcnt,
       tolerance = 2
     )
-
   }
 )
 
@@ -200,7 +188,6 @@ test_that(
 test_that(
   "Fitted KS values are similar to SPIC output at its fit values",
   {
-
     conditions <- c("p05", "p10", "p25", "p50", "p75", "p90", "p95")
     participants <- c("a", "b")
 
@@ -285,7 +272,6 @@ test_that(
     )
 
     for (row in seq_len(nrow(spic_data))) {
-
       data <- (
         carpenter_williams_1995 |>
           dplyr::filter(
@@ -317,9 +303,7 @@ test_that(
       )
 
       expect_equal(curr_ks, spic_data[row, "ks"], tolerance = 2)
-
     }
-
   }
 )
 
@@ -327,7 +311,6 @@ test_that(
 test_that(
   "Two datasets without sharing raise a warning",
   {
-
     n <- 500
 
     data_a <- data.frame(
@@ -357,6 +340,5 @@ test_that(
     expect_warning(fit_data(data = data))
 
     expect_no_warning(fit_data(data = data, share_a = TRUE))
-
   }
 )
