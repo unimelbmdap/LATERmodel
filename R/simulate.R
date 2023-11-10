@@ -1,15 +1,16 @@
 #' Simulate a dataset given model parameters.
 #'
-#' Generates samples from a set of provided LATER model parameters,
-#' iteratively replacing invalid samples (reaction times <= 0).
+#' Generates samples (reaction times) from a set of provided LATER model parameters,
+#' with the option to iteratively replace invalid samples (reaction times <= 0).
 #'
-#' @param n Number of samples (trials)
+#' @param n Number of samples (trials).
 #' @param later_mu Mean of the later component.
 #' @param later_sd Standard deviation of the later component.
 #' @param early_sd Standard deviation of the early component,
 #'  or `NULL` if there is no early component (the default).
-#' @param seed Seed for the random number generator
-#' @returns Vector of response times (in seconds)
+#' @param seed Seed for the random number generator.
+#' @param require_positive_times If `TRUE`, re-sample until all samples are > 0.
+#' @returns Vector of reaction times (in seconds).
 #' @examples
 #' simulate_dataset(n = 100, later_mu = 5, later_sd = 1)
 #' simulate_dataset(n = 100, later_mu = 5, later_sd = 1, early_sd = 5)
@@ -19,7 +20,8 @@ simulate_dataset <- function(
     later_mu,
     later_sd,
     early_sd = NULL,
-    seed = NULL) {
+    seed = NULL,
+    require_positive_times = TRUE) {
   if (is.null(seed)) {
     seed <- sample.int(n = .Machine$integer.max, size = 1)
   }
@@ -29,9 +31,19 @@ simulate_dataset <- function(
   withr::with_seed(
     seed = seed,
     code = {
-      later_draws <- draw_samples(n = n, mean = later_mu, sd = later_sd)
+      later_draws <- draw_samples(
+        n = n,
+        mean = later_mu,
+        sd = later_sd,
+        require_positive_times = require_positive_times
+      )
       if (has_early) {
-        early_draws <- draw_samples(n = n, mean = 0, sd = early_sd)
+        early_draws <- draw_samples(
+          n = n,
+          mean = 0,
+          sd = early_sd,
+          require_positive_times = require_positive_times
+        )
         draws <- pmax(later_draws, early_draws)
       } else {
         draws <- later_draws
@@ -44,14 +56,17 @@ simulate_dataset <- function(
   return(times)
 }
 
-# re-draws if sample is <= 0
-draw_samples <- function(n, mean, sd) {
-  samples <- rep(x = -1, times = n)
+draw_samples <- function(n, mean, sd, require_positive_times = TRUE) {
+
+  samples <- stats::rnorm(
+      n = n, mean = mean, sd = sd
+  )
 
   repeat({
+
     n_lte_zero <- sum(samples <= 0)
 
-    if (n_lte_zero == 0) {
+    if (!require_positive_times || n_lte_zero == 0) { 
       break
     }
     samples[samples <= 0] <- stats::rnorm(

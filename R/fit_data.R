@@ -85,9 +85,7 @@ fit_data <- function(
   # datasets and shared parameter arrangement
   fit_info <- set_param_counts(fit_info = fit_info)
 
-  if (fit_info$fit_criterion == "ks") {
-    data <- add_ecdf_to_data(data = data)
-  }
+  data <- add_ecdf_to_data(data = data)
 
   # add new columns to the dataframe describing the parameter index for
   # each measurement
@@ -130,6 +128,9 @@ fit_data <- function(
 
   # compute the overall fit log-likelihood
   fit_info$loglike <- calc_loglike(data = data, fit_info = fit_info)
+  # and the KS
+  fit_info$ks <- calc_ks(data = data, fit_info = fit_info)
+
   # and the AIC
   fit_info$aic <- calc_aic(
     loglike = fit_info$loglike,
@@ -228,6 +229,30 @@ promptness_ecdf <- function(
   return(data.frame(x = x, y = y))
 }
 
+calc_ks <- function(data, fit_info) {
+  ks <- data |>
+    dplyr::group_by(.data$name) |>
+    dplyr::mutate(
+      p = model_cdf(
+        q = .data$promptness,
+        later_mu = fit_info$fitted_params$mu[.data$i_mu],
+        later_sd = fit_info$fitted_params$sigma[.data$i_sigma],
+        early_sd = fit_info$fitted_params$sigma_e[.data$i_sigma_e]
+      )
+    ) |>
+    dplyr::summarize(
+      ks = calc_ks_stat(.data$ecdf_p, .data$p)
+    ) |>
+    dplyr::pull(.data$ks)
+
+  if (fit_info$use_minmax) {
+    ks <- max(ks)
+  } else {
+    ks <- sum(ks)
+  }
+
+  return(ks)
+}
 
 calc_loglike <- function(data, fit_info) {
   loglike <- data |>
