@@ -129,7 +129,7 @@ fit_data <- function(
   # compute the overall fit log-likelihood
   fit_info$loglike <- calc_loglike(data = data, fit_info = fit_info)
   # and the KS
-  fit_info$ks <- calc_ks(data = data, fit_info = fit_info)
+  fit_info$ks <- calc_gof_ks(data = data, fit_info = fit_info)
 
   # and the AIC
   fit_info$aic <- calc_aic(
@@ -229,7 +229,10 @@ promptness_ecdf <- function(
   return(data.frame(x = x, y = y))
 }
 
-calc_ks <- function(data, fit_info) {
+# calculates the KS statistic for a fitted model as a measure of
+# goodness-of-fit
+# note that this is calculated separately for each dataset
+calc_gof_ks <- function(data, fit_info) {
   ks <- data |>
     dplyr::group_by(.data$name) |>
     dplyr::mutate(
@@ -245,14 +248,13 @@ calc_ks <- function(data, fit_info) {
     ) |>
     dplyr::pull(.data$ks)
 
-  if (fit_info$use_minmax) {
-    ks <- max(ks)
-  } else {
-    ks <- sum(ks)
-  }
-
   return(ks)
 }
+
+calc_ks_p <- function(ks, n) {
+  return(KSgeneral::cont_ks_c_cdf(q = ks, n = n))
+}
+
 
 calc_loglike <- function(data, fit_info) {
   loglike <- data |>
