@@ -470,3 +470,61 @@ test_that(
     )
   }
 )
+
+test_that(
+  "Fitting three datasets works as expected",
+  {
+    n <- 500
+
+    data_a <- data.frame(
+      name = "a",
+      promptness = 1 / simulate_dataset(
+        n = n,
+        later_mu = 5,
+        later_sd = 1,
+        early_sd = NULL,
+        seed = 489066781
+      )
+    )
+
+    data_b <- data.frame(
+      name = "b",
+      promptness = 1 / simulate_dataset(
+        n = n,
+        later_mu = 5,
+        later_sd = 1.5,
+        early_sd = NULL,
+        seed = 974149696
+      )
+    )
+
+    data_c <- data.frame(
+      name = "c",
+      promptness = 1 / simulate_dataset(
+        n = n,
+        later_mu = 5,
+        later_sd = 2.0,
+        early_sd = NULL,
+        seed = 279293069
+      )
+    )
+
+    data <- rbind(data_a, data_b, data_c)
+
+    fit <- fit_data(
+      data = data,
+      share_a = TRUE
+    )
+
+    expect_equal(
+      fit$fitted_params$mu,
+      fit$fitted_params$mu[1]
+    )
+
+    expect_equal(
+      fit$fitted_params$sigma,
+      c(0.9743208, 1.5414182, 2.1226855),
+      tolerance = 0.0001
+    )
+  }
+)
