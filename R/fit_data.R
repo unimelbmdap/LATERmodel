@@ -67,18 +67,13 @@ fit_data <- function(
   fit_info$datasets <- levels(data$name_factor)
   fit_info$n_datasets <- length(fit_info$datasets)
 
-  # only support fitting one or two datasets at a time
-  if (!(fit_info$n_datasets %in% c(1, 2))) {
-    rlang::abort("The number of datasets must be either 1 or 2")
-  }
-
-  fit_info$two_ds_no_share_warning <- (
-    fit_info$n_datasets == 2 &&
+  fit_info$multiple_ds_no_share_warning <- (
+    fit_info$n_datasets > 1 &&
       !any(share_a, share_sigma, share_sigma_e)
   )
 
-  if (fit_info$two_ds_no_share_warning) {
-    warning("Two datasets were provided, but there are no shared parameters")
+  if (fit_info$multiple_ds_no_share_warning) {
+    warning("Multiple datasets were provided, but there are no shared parameters")
   }
 
   # work out the number of model parameters for the provided number of
