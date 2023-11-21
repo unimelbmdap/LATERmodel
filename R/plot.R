@@ -4,7 +4,7 @@
 #' `promptness`, and `e_cdf`; one color per name (participant)
 #' @param fit_params A dataframe with one row for each named dataset and columns
 #' equal to the LATER model parameters returned by `fit_data$named_fit_params`
-#' @param time_breaks Desired tick marks on the x axis, expressed in Latency (s)
+#' @param time_breaks Desired tick marks on the x axis, expressed in promptness (1 / s)
 #' @param probit_breaks Desired tick marks on the y axis in probit space
 #' @param z_breaks Desired tick marks on secondary y axis, in z values
 #' @param xrange Desired range for the x axis, in seconds
