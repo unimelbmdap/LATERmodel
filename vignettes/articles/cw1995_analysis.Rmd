@@ -46,21 +46,46 @@ print.data.frame(head(raw_data))
 
 ```{r}
 data <- prepare_data(rt = raw_data)
+# make the names match C&W
+data$name <- dplyr::recode_factor(
+  .x = data$name,
+  a_p05 = "5%",
+  a_p10 = "10%",
+  a_p25 = "25%",
+  a_p50 = "50%",
+  a_p75 = "75%",
+  a_p90 = "90%",
+  a_p95 = "95%")
 print.data.frame(head(data))
 ```
 
-```{r fig.show='hold', out.width = c("50%", "50%"), warning = FALSE}
+```{r fig.show='hold', out.width = c("50%", "50%"), message = FALSE, warning = FALSE}
 knitr::include_graphics("cw1995_fig2a.png")
-reciprobit_plot(
+plot <- reciprobit_plot(
   plot_data = data,
   probit_breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9),
-  time_breaks = c(100, 150, 200, 300, 500, 1000) / 1000) +
-ggplot2::coord_cartesian(
+  time_breaks = c(100, 150, 200, 300, 500, 1000) / 1000)
+plot + ggplot2::coord_cartesian(
   xlim = c(1 / 0.1, 1 / 2),
   ylim = c(0.1 / 100, 99.9 / 100),
   expand = FALSE,
   clip = "off")
 ```
 
+```{r}
+data_p05 <- subset(x = data, name == "5%")
+fit_p05 <- LATERmodel::fit_data(data = data_p05)
+fit_p05$named_fit_params$name <- as.factor(x = rownames(x = fit_p05$named_fit_params))
+fit_p05$named_fit_params$color <- unique(data_p05$color)
+fit_p05$named_fit_params <- as.data.frame(fit_p05$named_fit_params)
+#print(fit_p05$named_fit_params)
+#print(individual_later_fit(data_p05))
+LATERmodel::reciprobit_plot(plot_data = data_p05, fit_params = fit_p05$named_fit_params)
+```
+
+```{r}
+LATERmodel::reciprobit_plot(plot_data = data_p05, fit_params = individual_later_fit(data_p05))
+
+```
 
 ## References

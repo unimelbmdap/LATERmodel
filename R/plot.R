@@ -85,14 +85,17 @@ reciprobit_plot <- function(
       length.out = 100
     )
 
+    # using `fit_params$` rather than `.data$` so that `$sigma_e`
+    # returns `NULL` rather than raising an error if there is no
+    # early component in the fit
     plot_fit <- fit_params |>
       dplyr::reframe(
         x = x_eval,
         fit = model_cdf(
           x_eval,
-          later_mu = .data$mu,
-          later_sd = .data$sigma,
-          early_sd = .data$sigma_e
+          later_mu = fit_params$mu,
+          later_sd = fit_params$sigma,
+          early_sd = fit_params$sigma_e
         )
       )
 
