@@ -33,6 +33,17 @@ reciprobit_plot <- function(
     xrange = NULL,
     yrange = NULL) {
 
+  color_brewer_colors <- c(
+    "#1b9e77",
+    "#d95f02",
+    "#7570b3",
+    "#e7298a",
+    "#66a61e",
+    "#e6ab02",
+    "#a6761d",
+    "#666666"
+  )
+
   # Remove points not defined in probit space
   plotting_data <- dplyr::filter(plot_data, .data$e_cdf > 0)
 
@@ -52,7 +63,7 @@ reciprobit_plot <- function(
     ggplot2::ggplot(ggplot2::aes(
       x = .data$promptness,
       y = 1. - .data$e_cdf,
-      colour = .data$color
+      colour = .data$name
     )) +
     ggplot2::geom_point() +
     ggplot2::scale_x_reverse(
@@ -85,7 +96,7 @@ reciprobit_plot <- function(
       ylim = yrange
     ) +
     ggplot2::scale_color_manual(
-      values = as.character(unique(plot_data$color)),
+      values = as.character(color_brewer_colors),
       labels = unique(plot_data$name)
     ) +
     ggplot2::theme_minimal() +
@@ -95,6 +106,12 @@ reciprobit_plot <- function(
     )
 
   if (!is.null(fit_params)) {
+
+    if (!"name" %in% colnames(fit_params)) {
+      fit_params <- fit_params |>
+        tibble::rownames_to_column(var = "name")
+    }
+
     x_eval <- seq(
       xrange[2],
       xrange[1],
@@ -110,14 +127,14 @@ reciprobit_plot <- function(
           later_sd = .data$sigma,
           early_sd = if ("sigma_e" %in% names(.data)) .data$sigma_e else NULL
         ),
-        .by = color
+        .by = name
       ) |>
       dplyr::filter(1 - .data$fit >= yrange[1] & 1 - .data$fit <= yrange[2])
 
     plot <- plot +
       ggplot2::geom_line(
         data = plot_fit,
-        ggplot2::aes(x = .data$x, y = 1. - .data$fit, colour = .data$color),
+        ggplot2::aes(x = .data$x, y = 1. - .data$fit, colour = .data$name),
         linewidth = 0.5
       )
   }
@@ -150,32 +167,4 @@ individual_later_fit <- function(df, with_early_component = FALSE) {
       )$named_fit_params,
       .keep = TRUE
     )
-}
-
-shared_later_fit <- function(
-    df,
-    share_a = FALSE,
-    share_sigma = FALSE,
-    share_sigma_e = FALSE,
-    with_early_component = FALSE,
-    intercept_form = FALSE,
-    use_minmax = FALSE,
-    fit_criterion = "ks") {
-
-  temp <- df |>
-    dplyr::group_by(.data$name) |>
-    dplyr::summarise(color = .data$color[1])
-
-    fit_data(
-      df,
-      share_a = share_a,
-      share_sigma = share_sigma,
-      share_sigma_e = share_sigma_e,
-      with_early_component = with_early_component,
-      intercept_form = intercept_form,
-      use_minmax = use_minmax,
-      fit_criterion = fit_criterion
-    )$named_fit_params |>
-    tibble::rownames_to_column(var = "name") |>
-      dplyr::left_join(temp, by = dplyr::join_by(name))
 }
