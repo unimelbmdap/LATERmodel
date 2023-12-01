@@ -7,8 +7,8 @@
 #' @param time_breaks Desired tick marks on the x axis, expressed in Latency (s)
 #' @param probit_breaks Desired tick marks on the y axis in probit space
 #' @param z_breaks Desired tick marks on secondary y axis, in z values
-#' @param xrange Desired range for the x axis, in seconds
-#' @param yrange Desired range for the y axis, in probit space
+#' @param xrange Desired range for the x axis, in promptness
+#' @param yrange Desired range for the y axis, in cumulative probability space
 #'
 #' @return A reciprobit plot with the cumulative probability distribution of
 #' the reaction times
@@ -32,7 +32,23 @@ reciprobit_plot <- function(
     z_breaks = c(-2, -1, 0, 1, 2),
     xrange = NULL,
     yrange = NULL) {
-  plot <- dplyr::filter(plot_data, .data$e_cdf > 0) |>
+
+  # Remove points not defined in probit space
+  plotting_data <- dplyr::filter(plot_data, .data$e_cdf > 0)
+
+  # If yrange or xrange is not specified, then use the maximum and minimum
+  # values present in the data
+  if (is.null(yrange)) {
+    yrange = c(min(1-plotting_data$e_cdf), max(1-plotting_data$e_cdf))
+  }
+  if (is.null(xrange)) {
+    xrange = c(max(plotting_data$promptness), min(plotting_data$promptness))
+  }
+  else if (xrange[1] < xrange[2]) {
+    xrange = rev(xrange)
+  }
+
+  plot <- plotting_data |>
     ggplot2::ggplot(ggplot2::aes(
       x = .data$promptness,
       y = 1. - .data$e_cdf,
@@ -51,10 +67,6 @@ reciprobit_plot <- function(
         labels = formatC(1 / time_breaks, digits = 2)
       )
     ) +
-    ggplot2::coord_cartesian(
-      xlim = xrange,
-      ylim = yrange
-    ) +
     ggplot2::scale_y_continuous(
       # Main axis
       name = "Cumulative percent probability",
@@ -68,6 +80,10 @@ reciprobit_plot <- function(
         breaks = z_breaks
       )
     ) +
+    ggplot2::coord_cartesian(
+      xlim = xrange,
+      ylim = yrange
+    ) +
     ggplot2::scale_color_manual(
       values = as.character(unique(plot_data$color)),
       labels = unique(plot_data$name)
@@ -80,8 +96,8 @@ reciprobit_plot <- function(
 
   if (!is.null(fit_params)) {
     x_eval <- seq(
-      min(plot_data$promptness),
-      max(plot_data$promptness),
+      xrange[2],
+      xrange[1],
       length.out = 100
     )
 
@@ -92,9 +108,11 @@ reciprobit_plot <- function(
           x_eval,
           later_mu = .data$mu,
           later_sd = .data$sigma,
-          early_sd = .data$sigma_e
-        )
-      )
+          early_sd = if ("sigma_e" %in% names(.data)) .data$sigma_e else NULL
+        ),
+        .by = color
+      ) |>
+      dplyr::filter(1 - .data$fit >= yrange[1] & 1 - .data$fit <= yrange[2])
 
     plot <- plot +
       ggplot2::geom_line(
@@ -132,4 +150,32 @@ individual_later_fit <- function(df, with_early_component = FALSE) {
       )$named_fit_params,
       .keep = TRUE
     )
+}
+
+shared_later_fit <- function(
+    df,
+    share_a = FALSE,
+    share_sigma = FALSE,
+    share_sigma_e = FALSE,
+    with_early_component = FALSE,
+    intercept_form = FALSE,
+    use_minmax = FALSE,
+    fit_criterion = "ks") {
+
+  temp <- df |>
+    dplyr::group_by(.data$name) |>
+    dplyr::summarise(color = .data$color[1])
+
+    fit_data(
+      df,
+      share_a = share_a,
+      share_sigma = share_sigma,
+      share_sigma_e = share_sigma_e,
+      with_early_component = with_early_component,
+      intercept_form = intercept_form,
+      use_minmax = use_minmax,
+      fit_criterion = fit_criterion
+    )$named_fit_params |>
+    tibble::rownames_to_column(var = "name") |>
+      dplyr::left_join(temp, by = dplyr::join_by(name))
 }
