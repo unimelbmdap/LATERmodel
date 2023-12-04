@@ -50,7 +50,7 @@ prepare_data <- function(rt, time_unit = "ms") {
       promptness = 1 / .data$time,
       e_cdf = promptness_ecdf(.data$promptness)$y
     ) |>
-    dplyr::select(-c("participant", "condition"))
+    dplyr::select(-dplyr::any_of(c("participant", "condition")))
 }
 
 
