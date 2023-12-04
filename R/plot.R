@@ -4,10 +4,11 @@
 #' and `e_cdf`
 #' @param fit_params A dataframe with one row for each named dataset and columns
 #' equal to the LATER model parameters returned by `fit_data$named_fit_params`
-#' @param time_breaks Desired tick marks on the x axis, expressed in promptness (1/s)
+#' @param time_breaks Desired tick marks on the x axis, expressed in
+#' promptness (1/s)
 #' @param probit_breaks Desired tick marks on the y axis in probit space
 #' @param z_breaks Desired tick marks on secondary y axis, in z values
-#' @param xrange Desired range for the x axis, in promptness
+#' @param xrange Desired range for the x axis, in promptness (1/s)
 #' @param yrange Desired range for the y axis, in cumulative probability space
 #'
 #' @return A reciprobit plot with the cumulative probability distribution of
@@ -122,7 +123,11 @@ reciprobit_plot <- function(
           x_eval,
           later_mu = .data$mu,
           later_sd = .data$sigma,
-          early_sd = if ("sigma_e" %in% names(fit_params)) .data$sigma_e else NULL
+          early_sd = if ("sigma_e" %in% names(fit_params)) {
+            .data$sigma_e
+          } else {
+            NULL
+          }
         ),
         .by = "name"
       ) |>

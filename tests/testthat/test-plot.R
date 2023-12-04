@@ -7,7 +7,12 @@ test_that("Carpenter and Williams (1995) Fig1a individual fits", {
 
 test_that("Carpenter and Williams (1995) Fig1b shared intercept", {
   df <- prepare_data(dplyr::filter(carpenter_williams_1995, participant == "b"))
-  fit_params <- fit_data(df, with_early_component = TRUE, share_a = TRUE, intercept_form = TRUE)
+  fit_params <- fit_data(
+    df,
+    with_early_component = TRUE,
+    share_a = TRUE,
+    intercept_form = TRUE
+  )
   disp_reciprobit <- reciprobit_plot(df, fit_params$named_fit_params)
   vdiffr::expect_doppelganger("C&W(1995)Fig1b", disp_reciprobit)
 })

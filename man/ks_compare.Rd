@@ -24,8 +24,8 @@ dataframe
 }
 \examples{
 data <- prepare_data(dplyr::filter(
-carpenter_williams_1995,
-participant == "b"
+  carpenter_williams_1995,
+  participant == "b"
 ))
 ks_compare(data)
 }

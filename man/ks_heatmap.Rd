@@ -20,8 +20,8 @@ null hypothesis that two datasets come from the same underlying distribution
 }
 \examples{
 data <- prepare_data(dplyr::filter(
-carpenter_williams_1995,
-participant == "b"
+  carpenter_williams_1995,
+  participant == "b"
 ))
 ks_results <- ks_compare(data)
 ks_heatmap(ks_results)

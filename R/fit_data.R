@@ -73,7 +73,9 @@ fit_data <- function(
   )
 
   if (fit_info$multiple_ds_no_share_warning) {
-    warning("Multiple datasets were provided, but there are no shared parameters")
+    warning(
+      "Multiple datasets were provided, but there are no shared parameters"
+    )
   }
 
   # work out the number of model parameters for the provided number of

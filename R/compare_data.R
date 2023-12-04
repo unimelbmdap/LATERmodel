@@ -99,7 +99,14 @@ ks_heatmap <- function(ks_results) {
       hjust = 0.5,
       vjust = 0.5
     ) +
-    ggplot2::scale_fill_manual(values = c("p<0.001" = "#FFFEE8", "p<0.01" = "#FEFDD1", "p<0.05" = "#FEFDBA", "p\u22650.05" = "#FBF719")) +
+    ggplot2::scale_fill_manual(
+      values = c(
+        "p<0.001" = "#FFFEE8",
+        "p<0.01" = "#FEFDD1",
+        "p<0.05" = "#FEFDBA",
+        "p\u22650.05" = "#FBF719"
+      )
+    ) +
     ggplot2::scale_x_discrete(position = "top") +
     ggplot2::theme_minimal() +
     ggplot2::labs(x = "", y = "", fill = "") +
