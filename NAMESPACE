@@ -2,6 +2,8 @@
 
 export(fit_data)
 export(individual_later_fit)
+export(ks_compare)
+export(ks_heatmap)
 export(model_cdf)
 export(model_pdf)
 export(prepare_data)
@@ -9,3 +11,4 @@ export(promptness_ecdf)
 export(reciprobit_plot)
 export(simulate_dataset)
 importFrom(rlang,.data)
+importFrom(utils,combn)

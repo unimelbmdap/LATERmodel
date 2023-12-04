@@ -3,9 +3,14 @@
 #'
 #' @param df A dataframe of datasets with columns: `name` and `time`, one
 #' unique `name` per dataset
+#' @param correct_multiple_comparisons If `TRUE`, an adjustment will be made
+#' to the p-values based on Holm, 1979, A simple sequentially rejective
+#' multiple test procedure
 #'
 #' @return A dataframe with columns `name1`, `name2`, `D`, and `p-value`
 #' @export
+#'
+#' @importFrom utils combn
 #'
 #' @examples
 #' data <- prepare_data(dplyr::filter(
@@ -86,7 +91,7 @@ ks_heatmap <- function(ks_results) {
           "\n",
           ifelse(
             .data$pval=="p<0.001",
-            pval,
+            .data$pval,
             paste0("p=", formatC(.data$p_value, digits = 2))
           )
         )

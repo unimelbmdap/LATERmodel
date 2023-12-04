@@ -127,7 +127,7 @@ reciprobit_plot <- function(
           later_sd = .data$sigma,
           early_sd = if ("sigma_e" %in% names(fit_params)) .data$sigma_e else NULL
         ),
-        .by = name
+        .by = .data$name
       ) |>
       dplyr::filter(1 - .data$fit >= yrange[1] & 1 - .data$fit <= yrange[2])
 
