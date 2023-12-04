@@ -125,7 +125,7 @@ reciprobit_plot <- function(
           x_eval,
           later_mu = .data$mu,
           later_sd = .data$sigma,
-          early_sd = if ("sigma_e" %in% names(.data)) .data$sigma_e else NULL
+          early_sd = if ("sigma_e" %in% names(fit_params)) .data$sigma_e else NULL
         ),
         .by = name
       ) |>
