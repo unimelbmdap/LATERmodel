@@ -32,7 +32,6 @@ reciprobit_plot <- function(
     z_breaks = c(-2, -1, 0, 1, 2),
     xrange = NULL,
     yrange = NULL) {
-
   color_brewer_colors <- c(
     "#1b9e77",
     "#d95f02",
@@ -50,13 +49,12 @@ reciprobit_plot <- function(
   # If yrange or xrange is not specified, then use the maximum and minimum
   # values present in the data
   if (is.null(yrange)) {
-    yrange = c(min(1-plotting_data$e_cdf), max(1-plotting_data$e_cdf))
+    yrange <- c(min(1 - plotting_data$e_cdf), max(1 - plotting_data$e_cdf))
   }
   if (is.null(xrange)) {
-    xrange = c(max(plotting_data$promptness), min(plotting_data$promptness))
-  }
-  else if (xrange[1] < xrange[2]) {
-    xrange = rev(xrange)
+    xrange <- c(max(plotting_data$promptness), min(plotting_data$promptness))
+  } else if (xrange[1] < xrange[2]) {
+    xrange <- rev(xrange)
   }
 
   plot <- plotting_data |>
@@ -106,7 +104,6 @@ reciprobit_plot <- function(
     )
 
   if (!is.null(fit_params)) {
-
     if (!"name" %in% colnames(fit_params)) {
       fit_params <- fit_params |>
         tibble::rownames_to_column(var = "name")

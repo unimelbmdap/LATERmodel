@@ -5,7 +5,9 @@ test_that("ks_compare works as expected", {
     condition %in% c("p05", "p50", "p95")
   ))
 
-  comparisons <- suppressWarnings({ks_compare(data, correct_multiple_comparisons = TRUE)})
+  comparisons <- suppressWarnings({
+    ks_compare(data, correct_multiple_comparisons = TRUE)
+  })
 
   expect_equal(
     dplyr::filter(
