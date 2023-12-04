@@ -1,10 +1,10 @@
 #' Plot reaction times and LATER model fit in reciprobit axes
 #'
-#' @param plot_data A dataframe with columns: `time`, `color`, `name`,
-#' `promptness`, and `e_cdf`; one color per name (participant)
+#' @param plot_data A dataframe with columns: `time`, `name`, `promptness`,
+#' and `e_cdf`
 #' @param fit_params A dataframe with one row for each named dataset and columns
 #' equal to the LATER model parameters returned by `fit_data$named_fit_params`
-#' @param time_breaks Desired tick marks on the x axis, expressed in Latency (s)
+#' @param time_breaks Desired tick marks on the x axis, expressed in promptness (1/s)
 #' @param probit_breaks Desired tick marks on the y axis in probit space
 #' @param z_breaks Desired tick marks on secondary y axis, in z values
 #' @param xrange Desired range for the x axis, in promptness
@@ -144,8 +144,7 @@ reciprobit_plot <- function(
 
 #' Fit individual LATER model to each dataset in a dataframe of datasets
 #'
-#' @param df A dataframe with columns: `time`, `color`, `name`,
-#' `promptness`, and `e_cdf`; one color per name (participant)
+#' @param df A dataframe with columns: `time`, `name`, `promptness`, and `e_cdf`
 #' @param with_early_component If `TRUE`, the model contains a second 'early'
 #'  component that is absent when `FALSE` (the default).
 #'
@@ -159,12 +158,13 @@ reciprobit_plot <- function(
 #' fit_params <- individual_later_fit(df)
 individual_later_fit <- function(df, with_early_component = FALSE) {
   df |>
-    dplyr::group_by(.data$name, .data$color) |>
+    dplyr::group_by(.data$name) |>
     dplyr::group_modify(
       ~ fit_data(
         .x,
         with_early_component = with_early_component
       )$named_fit_params,
       .keep = TRUE
-    )
+    ) |>
+    dplyr::ungroup()
 }

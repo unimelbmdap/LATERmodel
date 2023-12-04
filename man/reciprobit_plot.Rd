@@ -15,21 +15,21 @@ reciprobit_plot(
 )
 }
 \arguments{
-\item{plot_data}{A dataframe with columns: \code{time}, \code{color}, \code{name},
-\code{promptness}, and \code{e_cdf}; one color per name (participant)}
+\item{plot_data}{A dataframe with columns: \code{time}, \code{name}, \code{promptness},
+and \code{e_cdf}}
 
 \item{fit_params}{A dataframe with one row for each named dataset and columns
 equal to the LATER model parameters returned by \code{fit_data$named_fit_params}}
 
-\item{time_breaks}{Desired tick marks on the x axis, expressed in Latency (s)}
+\item{time_breaks}{Desired tick marks on the x axis, expressed in promptness (1/s)}
 
 \item{probit_breaks}{Desired tick marks on the y axis in probit space}
 
 \item{z_breaks}{Desired tick marks on secondary y axis, in z values}
 
-\item{xrange}{Desired range for the x axis, in seconds}
+\item{xrange}{Desired range for the x axis, in promptness}
 
-\item{yrange}{Desired range for the y axis, in probit space}
+\item{yrange}{Desired range for the y axis, in cumulative probability space}
 }
 \value{
 A reciprobit plot with the cumulative probability distribution of

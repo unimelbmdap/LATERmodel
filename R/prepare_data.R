@@ -13,7 +13,7 @@
 #' @export
 #'
 #' @examples
-#' df <- prepare_data(rt)
+#' df <- prepare_data(carpenter_williams_1995)
 prepare_data <- function(rt, time_unit = "ms") {
   if (typeof(rt) == "double") {
     plot_data <- data.frame(
@@ -50,7 +50,7 @@ prepare_data <- function(rt, time_unit = "ms") {
       promptness = 1 / .data$time,
       e_cdf = promptness_ecdf(.data$promptness)$y
     ) |>
-    dplyr::select(-.data$participant, -.data$condition)
+    dplyr::select(-c("participant", "condition"))
 }
 
 

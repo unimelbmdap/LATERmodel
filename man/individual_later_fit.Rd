@@ -7,8 +7,7 @@
 individual_later_fit(df, with_early_component = FALSE)
 }
 \arguments{
-\item{df}{A dataframe with columns: \code{time}, \code{color}, \code{name},
-\code{promptness}, and \code{e_cdf}; one color per name (participant)}
+\item{df}{A dataframe with columns: \code{time}, \code{name}, \code{promptness}, and \code{e_cdf}}
 
 \item{with_early_component}{If \code{TRUE}, the model contains a second 'early'
 component that is absent when \code{FALSE} (the default).}
