@@ -11,9 +11,9 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup, echo = FALSE, results = "hide", message = FALSE}
-library(LATERmodel)
-#library(devtools)
-#load_all()
+#library(LATERmodel)
+library(devtools)
+load_all()
 ```
 
 ```{r echo = FALSE, results = "hide", message = FALSE}
@@ -92,17 +92,11 @@ plot + ggplot2::coord_cartesian(
 ```{r}
 data_p05 <- subset(x = data, name == "5%")
 fit_p05 <- LATERmodel::fit_data(data = data_p05)
-#fit_p05$named_fit_params$name <- as.factor(x = rownames(x = fit_p05$named_fit_params))
-#fit_p05$named_fit_params$color <- unique(data_p05$color)
-#fit_p05$named_fit_params <- as.data.frame(fit_p05$named_fit_params)
-#print(fit_p05$named_fit_params)
-#print(individual_later_fit(data_p05))
-#LATERmodel::reciprobit_plot(plot_data = data_p05, fit_params = fit_p05$named_fit_params)
+LATERmodel::reciprobit_plot(plot_data = data_p05, fit_params = fit_p05$named_fit_params)
 ```
 
 ```{r}
-#LATERmodel::reciprobit_plot(plot_data = data_p05, fit_params = individual_later_fit(data_p05))
-
+fit_p05
 ```
 
 ## References
