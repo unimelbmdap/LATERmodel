@@ -69,12 +69,12 @@ reciprobit_plot <- function(
       # Main axis
       name = "Latency(s)",
       breaks = 1 / time_breaks,
-      labels = time_breaks,
+      labels = formatC(time_breaks, digits=2, format="g"),
       minor_breaks = NULL,
       # Secondary axis
       sec.axis = ggplot2::dup_axis(
         name = "Promptness (1/s)",
-        labels = formatC(1 / time_breaks, digits = 2)
+        labels = formatC(1 / time_breaks, digits = 2, format="g")
       )
     ) +
     ggplot2::scale_y_continuous(
