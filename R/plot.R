@@ -116,9 +116,6 @@ reciprobit_plot <- function(
       length.out = 100
     )
 
-    # using `fit_params$` rather than `.data$` so that `$sigma_e`
-    # returns `NULL` rather than raising an error if there is no
-    # early component in the fit
     plot_fit <- fit_params |>
       dplyr::reframe(
         x = x_eval,
