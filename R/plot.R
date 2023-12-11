@@ -1,13 +1,14 @@
 #' Plot reaction times and LATER model fit in reciprobit axes
 #'
-#' @param plot_data A dataframe with columns: `time`, `color`, `name`,
-#' `promptness`, and `e_cdf`; one color per name (participant)
+#' @param plot_data A dataframe with columns: `time`, `name`, `promptness`,
+#' and `e_cdf`
 #' @param fit_params A dataframe with one row for each named dataset and columns
 #' equal to the LATER model parameters returned by `fit_data$named_fit_params`
-#' @param time_breaks Desired tick marks on the x axis, expressed in promptness (1 / s)
+#' @param time_breaks Desired tick marks on the x axis, expressed in
+#' promptness (1/s)
 #' @param probit_breaks Desired tick marks on the y axis in probit space
 #' @param z_breaks Desired tick marks on secondary y axis, in z values
-#' @param xrange Desired range for the x axis, in promptness
+#' @param xrange Desired range for the x axis, in promptness (1/s)
 #' @param yrange Desired range for the y axis, in cumulative probability space
 #'
 #' @return A reciprobit plot with the cumulative probability distribution of
@@ -32,7 +33,6 @@ reciprobit_plot <- function(
     z_breaks = c(-2, -1, 0, 1, 2),
     xrange = NULL,
     yrange = NULL) {
-
   color_brewer_colors <- c(
     "#1b9e77",
     "#d95f02",
@@ -50,13 +50,12 @@ reciprobit_plot <- function(
   # If yrange or xrange is not specified, then use the maximum and minimum
   # values present in the data
   if (is.null(yrange)) {
-    yrange = c(min(1-plotting_data$e_cdf), max(1-plotting_data$e_cdf))
+    yrange <- c(min(1 - plotting_data$e_cdf), max(1 - plotting_data$e_cdf))
   }
   if (is.null(xrange)) {
-    xrange = c(max(plotting_data$promptness), min(plotting_data$promptness))
-  }
-  else if (xrange[1] < xrange[2]) {
-    xrange = rev(xrange)
+    xrange <- c(max(plotting_data$promptness), min(plotting_data$promptness))
+  } else if (xrange[1] < xrange[2]) {
+    xrange <- rev(xrange)
   }
 
   plot <- plotting_data |>
@@ -106,7 +105,6 @@ reciprobit_plot <- function(
     )
 
   if (!is.null(fit_params)) {
-
     if (!"name" %in% colnames(fit_params)) {
       fit_params <- fit_params |>
         tibble::rownames_to_column(var = "name")
@@ -128,9 +126,13 @@ reciprobit_plot <- function(
           x_eval,
           later_mu = .data$mu,
           later_sd = .data$sigma,
-          early_sd = if ("sigma_e" %in% names(.data)) .data$sigma_e else NULL
+          early_sd = if ("sigma_e" %in% names(fit_params)) {
+            .data$sigma_e
+          } else {
+            NULL
+          }
         ),
-        .by = name
+        .by = "name"
       ) |>
       dplyr::filter(1 - .data$fit >= yrange[1] & 1 - .data$fit <= yrange[2])
 
@@ -147,8 +149,7 @@ reciprobit_plot <- function(
 
 #' Fit individual LATER model to each dataset in a dataframe of datasets
 #'
-#' @param df A dataframe with columns: `time`, `color`, `name`,
-#' `promptness`, and `e_cdf`; one color per name (participant)
+#' @param df A dataframe with columns: `time`, `name`, `promptness`, and `e_cdf`
 #' @param with_early_component If `TRUE`, the model contains a second 'early'
 #'  component that is absent when `FALSE` (the default).
 #'
@@ -162,12 +163,13 @@ reciprobit_plot <- function(
 #' fit_params <- individual_later_fit(df)
 individual_later_fit <- function(df, with_early_component = FALSE) {
   df |>
-    dplyr::group_by(.data$name, .data$color) |>
+    dplyr::group_by(.data$name) |>
     dplyr::group_modify(
       ~ fit_data(
         .x,
         with_early_component = with_early_component
       )$named_fit_params,
       .keep = TRUE
-    )
+    ) |>
+    dplyr::ungroup()
 }

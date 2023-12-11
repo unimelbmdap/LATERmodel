@@ -28,7 +28,8 @@ Imports:
     ggplot2,
     printr,
     rlang,
-    stats
+    stats,
+    tibble
 Depends: 
     R (>= 4.1)
 LazyData: true

@@ -23,5 +23,5 @@ and \code{e_cdf}.
 Prepares data for reciprobit plot
 }
 \examples{
-df <- prepare_data(rt)
+df <- prepare_data(carpenter_williams_1995)
 }

@@ -3,14 +3,19 @@
 #'
 #' @param df A dataframe of datasets with columns: `name` and `time`, one
 #' unique `name` per dataset
+#' @param correct_multiple_comparisons If `TRUE`, an adjustment will be made
+#' to the p-values based on Holm, 1979, A simple sequentially rejective
+#' multiple test procedure
 #'
 #' @return A dataframe with columns `name1`, `name2`, `D`, and `p-value`
 #' @export
 #'
+#' @importFrom utils combn
+#'
 #' @examples
 #' data <- prepare_data(dplyr::filter(
-#' carpenter_williams_1995,
-#' participant == "b"
+#'   carpenter_williams_1995,
+#'   participant == "b"
 #' ))
 #' ks_compare(data)
 ks_compare <- function(df, correct_multiple_comparisons = TRUE) {
@@ -60,8 +65,8 @@ ks_compare <- function(df, correct_multiple_comparisons = TRUE) {
 #'
 #' @examples
 #' data <- prepare_data(dplyr::filter(
-#' carpenter_williams_1995,
-#' participant == "b"
+#'   carpenter_williams_1995,
+#'   participant == "b"
 #' ))
 #' ks_results <- ks_compare(data)
 #' ks_heatmap(ks_results)
@@ -85,8 +90,8 @@ ks_heatmap <- function(ks_results) {
           format(.data$D, digits = 1),
           "\n",
           ifelse(
-            .data$pval=="p<0.001",
-            pval,
+            .data$pval == "p<0.001",
+            .data$pval,
             paste0("p=", formatC(.data$p_value, digits = 2))
           )
         )
@@ -94,7 +99,14 @@ ks_heatmap <- function(ks_results) {
       hjust = 0.5,
       vjust = 0.5
     ) +
-    ggplot2::scale_fill_manual(values = c("p<0.001"="#FFFEE8", "p<0.01"="#FEFDD1", "p<0.05"="#FEFDBA", "p\u22650.05"="#FBF719")) +
+    ggplot2::scale_fill_manual(
+      values = c(
+        "p<0.001" = "#FFFEE8",
+        "p<0.01" = "#FEFDD1",
+        "p<0.05" = "#FEFDBA",
+        "p\u22650.05" = "#FBF719"
+      )
+    ) +
     ggplot2::scale_x_discrete(position = "top") +
     ggplot2::theme_minimal() +
     ggplot2::labs(x = "", y = "", fill = "") +
