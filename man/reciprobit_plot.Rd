@@ -16,7 +16,8 @@ reciprobit_plot(
 }
 \arguments{
 \item{plot_data}{A dataframe with columns: \code{time}, \code{name}, \code{promptness},
-and \code{e_cdf}}
+and \code{e_cdf}. Optionally, there may be a \code{color} column, which contains
+hex values, one unique hex value per named dataset}
 
 \item{fit_params}{A dataframe with one row for each named dataset and columns
 equal to the LATER model parameters returned by \code{fit_data$named_fit_params}}

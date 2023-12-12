@@ -1,7 +1,8 @@
 #' Plot reaction times and LATER model fit in reciprobit axes
 #'
 #' @param plot_data A dataframe with columns: `time`, `name`, `promptness`,
-#' and `e_cdf`
+#' and `e_cdf`. Optionally, there may be a `color` column, which contains
+#' hex values, one unique hex value per named dataset
 #' @param fit_params A dataframe with one row for each named dataset and columns
 #' equal to the LATER model parameters returned by `fit_data$named_fit_params`
 #' @param time_breaks Desired tick marks on the x axis, expressed in
@@ -33,6 +34,7 @@ reciprobit_plot <- function(
     z_breaks = c(-2, -1, 0, 1, 2),
     xrange = NULL,
     yrange = NULL) {
+
   color_brewer_colors <- c(
     "#1b9e77",
     "#d95f02",
@@ -43,6 +45,12 @@ reciprobit_plot <- function(
     "#a6761d",
     "#666666"
   )
+
+  if ("color" %in% names(plot_data)) {
+    colors <- c(unique(plot_data$color), color_brewer_colors)
+  } else {
+    colors <- color_brewer_colors
+  }
 
   # Remove points not defined in probit space
   plotting_data <- dplyr::filter(plot_data, .data$e_cdf > 0)
@@ -95,7 +103,7 @@ reciprobit_plot <- function(
       ylim = yrange
     ) +
     ggplot2::scale_color_manual(
-      values = as.character(color_brewer_colors),
+      values = as.character(colors),
       labels = unique(plot_data$name)
     ) +
     ggplot2::theme_minimal() +
