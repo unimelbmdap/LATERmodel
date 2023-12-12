@@ -39,7 +39,7 @@ fit_data <- function(
     with_early_component = FALSE,
     intercept_form = FALSE,
     use_minmax = FALSE,
-    fit_criterion = "ks") {
+    fit_criterion = "neg_loglike") {
   # only support fitting KS or neg loglike criteria
   if (!(fit_criterion %in% c("ks", "neg_loglike"))) {
     rlang::abort("Fit criterion must be `ks` or `neg_loglike`")

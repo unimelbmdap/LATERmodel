@@ -12,7 +12,7 @@ fit_data(
   with_early_component = FALSE,
   intercept_form = FALSE,
   use_minmax = FALSE,
-  fit_criterion = "ks"
+  fit_criterion = "neg_loglike"
 )
 }
 \arguments{

@@ -1,6 +1,10 @@
 ---
-title: "Analysis of 'Neural computation of log likelihood in control of saccadic eye movements'"
+title: Analysis of 'Neural computation of log likelihood in control of saccadic eye
+  movements'
 bibliography: cw1995_analysis.bib
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r, include = FALSE}
@@ -10,11 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, echo = FALSE, results = "hide", message = FALSE}
-#library(LATERmodel)
-library(devtools)
-load_all()
-```
+
 
 ```{r echo = FALSE, results = "hide", message = FALSE}
 library(printr)
@@ -27,20 +27,18 @@ We will be particularly interested in analysing the data from participant *a*, a
 knitr::include_graphics("cw1995_fig2a.png")
 ```
 
+We start by loading the LATERmodel package:
+
+```{r setup, echo = TRUE, results = "hide", message = FALSE}
+library(LATERmodel)
+```
 
 ## Loading the raw data
 
 A digitised version of the raw data from this study is included in this package in the `carpenter_williams_1995` variable.
-The help documentation for this data describes its contents and format:
-
-<!-- printr.help.sections = "format" -->
-```{r}
-help(carpenter_williams_1995)
-```
-
 Because we are only interested in participant *a* here, we will first extract only their data from this variable and then have a look at the first few rows:
 ```{r}
-raw_data <- subset(x = carpenter_williams_1995, participant == "a")
+raw_data <- subset(x = LATERmodel::carpenter_williams_1995, participant == "a")
 print(head(raw_data))
 ```
 
@@ -54,8 +52,7 @@ data <- LATERmodel::prepare_data(rt = raw_data)
 print(head(data))
 ```
 
-As shown above, ...
-
+As shown above, the data now has columns for `name` (formed from the combination of the `participant` and `condition` columns in the raw data), `promptness` (the inverse of the response time), and `e_cdf` (the evaluated empirical cumulative distribution function).
 To make the condition names match those used in @Carpenter1995, we can recode them:
 
 ```{r}
@@ -78,7 +75,7 @@ As shown below, this produces a figure in a similar format to the visualisation 
 
 ```{r fig.show='hold', out.width = c("50%", "50%"), message = FALSE, warning = FALSE}
 knitr::include_graphics("cw1995_fig2a.png")
-plot <- reciprobit_plot(
+plot <- LATERmodel::reciprobit_plot(
   plot_data = data,
   probit_breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9),
   time_breaks = c(100, 150, 200, 300, 500, 1000) / 1000)
@@ -89,14 +86,174 @@ plot + ggplot2::coord_cartesian(
   clip = "off")
 ```
 
-```{r}
-data_p05 <- subset(x = data, name == "5%")
-fit_p05 <- LATERmodel::fit_data(data = data_p05)
-LATERmodel::reciprobit_plot(plot_data = data_p05, fit_params = fit_p05$named_fit_params)
-```
+## Fitting the observed data
+
+### Single dataset
+
+We will first consider how we can fit a LATER model to the observations from a single dataset: the 5% condition.
+First, we will extract the relevant data:
 
 ```{r}
-fit_p05
+data_p05 <- subset(x = data, name == "5%")
 ```
+
+We can use the `LATERmodel::fit_data` function to perform the fitting.
+When fitting a single dataset, there are two key decisions to make:
+
+1. Whether the model should include an *early* component, corresponding to very fast responses. The inclusion of this model component is controlled by the `with_early_component` parameter to `LATERmodel::fit_data`.
+2. Whether the fit should be optimised so that the minimum is sought for the negative log-likelihood or for the Kolmogorov-Smirnov value. This decision is specified in the `fit_criterion` parameter, which is either `neg_loglike` (the default) or `ks`.
+
+Here, we will fit the data including an early component and using the negative log-likelihood as the fit criterion:
+
+```{r}
+fit_p05 <- LATERmodel::fit_data(
+  data = data_p05,
+  with_early_component = TRUE,
+  fit_criterion = "neg_loglike")
+```
+
+The returned variable, here named `fit_p05`, contains information about the fitting parameters and the fitting result.
+The best-fitting parameter values can be accessed through:
+
+```{r}
+fit_p05$named_fit_params
+```
+
+We can visualise the fit by passing these parameters to the `LATERmodel::reciprobit_plot` function:
+
+```{r message = FALSE, warning = FALSE}
+plot <- LATERmodel::reciprobit_plot(
+  plot_data = data_p05,
+  fit_params = fit_p05$named_fit_params,
+  probit_breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9),
+  time_breaks = c(100, 150, 200, 300, 500, 1000) / 1000)
+plot + ggplot2::coord_cartesian(
+  xlim = c(1 / 0.1, 1 / 2),
+  ylim = c(0.1 / 100, 99.9 / 100),
+  expand = FALSE,
+  clip = "off")
+```
+
+### Multiple datasets fitted separately
+
+If we want to fit multiple datasets but consider each dataset separately in the fitting, we can use the `LATERmodel::individual_later_fit` helper function.
+Here, we will use it to fit all the conditions in the example data:
+
+```{r}
+individual_named_fit_params <- LATERmodel::individual_later_fit(
+  df = data,
+  with_early_component = TRUE)
+```
+
+This function directly returns the `named_fit_params` component of the fit information:
+
+```{r}
+individual_named_fit_params
+```
+
+We can plot the result, as before:
+
+```{r fig.show='hold', out.width = c("50%", "50%"), message = FALSE, warning = FALSE}
+knitr::include_graphics("cw1995_fig2a.png")
+plot <- LATERmodel::reciprobit_plot(
+  plot_data = data,
+  fit_params = individual_named_fit_params,
+  probit_breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9),
+  time_breaks = c(100, 150, 200, 300, 500, 1000) / 1000)
+plot + ggplot2::coord_cartesian(
+  xlim = c(1 / 0.1, 1 / 2),
+  ylim = c(0.1 / 100, 99.9 / 100),
+  expand = FALSE,
+  clip = "off")
+```
+
+Note that, in contrast to @Carpenter1995, our plots show the fits from the complete model rather than attempting to isolate the two components - the 'alternative' in the following explanation from @Carpenter2023, p. 26:
+
+> "it is important to point out that although for clarity it can often be helpful to plot the asymptotes – in effect, the two separate components corresponding to the main and maverick components – the data points will not be expected to go through them: an alternative is to plot the combined theoretical distribution resulting from both components together"
+
+### Multiple datasets fitted together
+
+We might be interested in situations in which multiple datasets have the same LATER model parameter value.
+For example, multiple datasets might have the same standard deviation of the primary component ($\sigma$) but vary in the mean of the primary component ($\mu$) and the standard deviation of the early component ($\sigma_e$).
+We refer to such a scenario as a *sharing* of parameters, and this particular arrangement is known as a *shift*.
+
+To fit the datasets under such a sharing constraint, we use the `share_` parameters.
+For the example above, we can set `share_sigma = TRUE`:
+
+```{r}
+fit_shift <- LATERmodel::fit_data(
+  data = data,
+  with_early_component = TRUE,
+  fit_criterion = "neg_loglike",
+  share_sigma = TRUE)
+```
+
+When we look at the fitted parameter values, we can see that they each have the same `sigma`:
+
+```{r}
+fit_shift$named_fit_params
+```
+
+We can plot the fits, as usual:
+
+```{r message = FALSE, warning = FALSE}
+plot <- LATERmodel::reciprobit_plot(
+  plot_data = data,
+  fit_params = fit_shift$named_fit_params,
+  probit_breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9),
+  time_breaks = c(100, 150, 200, 300, 500, 1000) / 1000)
+plot + ggplot2::coord_cartesian(
+  xlim = c(1 / 0.1, 1 / 2),
+  ylim = c(0.1 / 100, 99.9 / 100),
+  expand = FALSE,
+  clip = "off")
+```
+
+We can also consider other sharing arrangments.
+A particularly useful arrangement is known as a *swivel*, and occurs when multiple datasets share the point at which the latency approaches infinity (that is, the datasets rotate or 'swivel' around this intercept point).
+To be able to share this parameter, we need to tell `fit_data` that we would like the parameters to be $\left(k, \sigma\right)$ rather than $\left(\mu, \sigma\right)$.
+Here, $k$ is the intercept ($\mu / \sigma$).
+We do that by setting the parameter `intercept_form` to `TRUE`, which means that the parameter $a$ in the model corresponds to $k$ rather than $\mu$.
+Finally, to share the intercept parameter, we also set the parameter `share_a` to `TRUE`.
+
+```{r}
+fit_swivel <- LATERmodel::fit_data(
+  data = data,
+  with_early_component = TRUE,
+  fit_criterion = "neg_loglike",
+  intercept_form = TRUE,
+  share_a = TRUE)
+```
+
+Again, we can inspect the fitted parameters:
+
+```{r}
+fit_swivel$named_fit_params
+```
+
+And plot the fits:
+
+```{r message = FALSE, warning = FALSE}
+plot <- LATERmodel::reciprobit_plot(
+  plot_data = data,
+  fit_params = fit_swivel$named_fit_params,
+  probit_breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9),
+  time_breaks = c(100, 150, 200, 300, 500, 1000) / 1000)
+plot + ggplot2::coord_cartesian(
+  xlim = c(1 / 0.1, 1 / 2),
+  ylim = c(0.1 / 100, 99.9 / 100),
+  expand = FALSE,
+  clip = "off")
+```
+
+One approach to comparing the fits to determine which provides a superior account of the observations is to compare their Akaike Information Criterion (AIC) values.
+These are reported within the variable returned by `fit_data`:
+```{r}
+fit_shift$aic
+fit_swivel$aic
+fit_shift$aic - fit_swivel$aic
+```
+
+The lower AIC value for the 'shift' model suggests that it provides a better fit than the 'swivel' model for these particular datasets.
 
 ## References

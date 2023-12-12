@@ -21,12 +21,8 @@ and \code{e_cdf}}
 \item{fit_params}{A dataframe with one row for each named dataset and columns
 equal to the LATER model parameters returned by \code{fit_data$named_fit_params}}
 
-<<<<<<< HEAD
-\item{time_breaks}{Desired tick marks on the x axis, expressed in promptness (1 / s)}
-=======
 \item{time_breaks}{Desired tick marks on the x axis, expressed in
 promptness (1/s)}
->>>>>>> master
 
 \item{probit_breaks}{Desired tick marks on the y axis in probit space}
 
