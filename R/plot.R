@@ -170,11 +170,32 @@ individual_later_fit <- function(df, with_early_component = FALSE) {
   df |>
     dplyr::group_by(.data$name) |>
     dplyr::group_modify(
-      ~ fit_data(
+      ~ extract_fit_params_and_stat(
         .x,
         with_early_component = with_early_component
-      )$named_fit_params,
+      ),
       .keep = TRUE
     ) |>
     dplyr::ungroup()
+
+}
+
+extract_fit_params_and_stat <- function(data, with_early_component = FALSE) {
+  this_list <- fit_data(
+    data,
+    with_early_component = with_early_component
+  )
+
+  df <- data.frame(
+    this_list$named_fit_params,
+    this_list$fit_criterion,
+    this_list$optim_result$value,
+    this_list$loglike,
+    this_list$aic
+  ) |>
+    dplyr::rename("stat" = "this_list.optim_result.value")
+
+  names(df) <- sub('^this_list.', '', names(df))
+
+  df
 }
