@@ -34,7 +34,6 @@ reciprobit_plot <- function(
     z_breaks = c(-2, -1, 0, 1, 2),
     xrange = NULL,
     yrange = NULL) {
-
   color_brewer_colors <- c(
     "#1b9e77",
     "#d95f02",
@@ -77,12 +76,12 @@ reciprobit_plot <- function(
       # Main axis
       name = "Latency(s)",
       breaks = 1 / time_breaks,
-      labels = formatC(time_breaks, digits=2, format="g"),
+      labels = formatC(time_breaks, digits = 2, format = "g"),
       minor_breaks = NULL,
       # Secondary axis
       sec.axis = ggplot2::dup_axis(
         name = "Promptness (1/s)",
-        labels = formatC(1 / time_breaks, digits = 2, format="g")
+        labels = formatC(1 / time_breaks, digits = 2, format = "g")
       )
     ) +
     ggplot2::scale_y_continuous(
@@ -157,6 +156,10 @@ reciprobit_plot <- function(
 #' @param df A dataframe with columns: `time`, `name`, `promptness`, and `e_cdf`
 #' @param with_early_component If `TRUE`, the model contains a second 'early'
 #'  component that is absent when `FALSE` (the default).
+#' @param fit_criterion String indicating the criterion used to optimise the
+#'  fit by seeking its minimum.
+#'   * `ks`: Kolmogorov-Smirnov statistic.
+#'   * `neg_loglike`: Negative log-likelihood.
 #'
 #' @return A dataframe with one row for each named dataset in `df` and columns
 #' equal to the LATER model parameters returned by fit_data$named_fit_params
@@ -166,24 +169,31 @@ reciprobit_plot <- function(
 #' a <- dplyr::filter(carpenter_williams_1995, participant == "a")
 #' df <- prepare_data(a)
 #' fit_params <- individual_later_fit(df)
-individual_later_fit <- function(df, with_early_component = FALSE) {
+individual_later_fit <- function(
+    df,
+    with_early_component = FALSE,
+    fit_criterion = "ks") {
   df |>
     dplyr::group_by(.data$name) |>
     dplyr::group_modify(
       ~ extract_fit_params_and_stat(
         .x,
-        with_early_component = with_early_component
+        with_early_component = with_early_component,
+        fit_criterion = fit_criterion
       ),
       .keep = TRUE
     ) |>
     dplyr::ungroup()
-
 }
 
-extract_fit_params_and_stat <- function(data, with_early_component = FALSE) {
+extract_fit_params_and_stat <- function(
+    data,
+    with_early_component,
+    fit_criterion) {
   this_list <- fit_data(
     data,
-    with_early_component = with_early_component
+    with_early_component = with_early_component,
+    fit_criterion = fit_criterion
   )
 
   df <- data.frame(
@@ -195,7 +205,7 @@ extract_fit_params_and_stat <- function(data, with_early_component = FALSE) {
   ) |>
     dplyr::rename("stat" = "this_list.optim_result.value")
 
-  names(df) <- sub('^this_list.', '', names(df))
+  names(df) <- sub("^this_list.", "", names(df))
 
   df
 }
