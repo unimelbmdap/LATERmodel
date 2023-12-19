@@ -30,7 +30,9 @@ knitr::include_graphics("cw1995_fig2a.png")
 We start by loading the LATERmodel package:
 
 ```{r setup, echo = TRUE, results = "hide", message = FALSE}
-library(LATERmodel)
+#library(LATERmodel)
+library(devtools)
+load_all()
 ```
 
 ## Loading the raw data
@@ -255,5 +257,10 @@ fit_shift$aic - fit_swivel$aic
 ```
 
 The lower AIC value for the 'shift' model suggests that it provides a better fit than the 'swivel' model for these particular datasets.
+
+```{r}
+fit_comparison <- compare_fits(list(swivel=fit_swivel, shift=fit_shift));
+print(fit_comparison)
+```
 
 ## References
