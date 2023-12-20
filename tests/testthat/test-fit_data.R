@@ -90,7 +90,7 @@ test_that(
 
 
 test_that(
-  "LATER model fit (mu = 5, sigma = 1, criterion = 'neg_loglike')
+  "LATER model fit (mu = 5, sigma = 1, criterion = 'likelihood')
   is as expected",
   {
     seed <- 23256312
@@ -112,7 +112,7 @@ test_that(
 
     data <- data.frame(name = "test", promptness = 1 / times)
 
-    fit <- fit_data(data = data, fit_criterion = "neg_loglike")
+    fit <- fit_data(data = data, fit_criterion = "likelihood")
 
     expect_equal(
       fit$fitted_params$mu,
@@ -173,7 +173,7 @@ test_that(
 
 test_that(
   "LATER model fit (mu = 5, sigma = 0.5, sigma_e = 3,
-  fit_criterion = 'neg_loglike') is as expected",
+  fit_criterion = 'likelihood') is as expected",
   {
     seed <- 946395130
 
@@ -197,7 +197,7 @@ test_that(
     fit <- fit_data(
       data = data,
       with_early_component = TRUE,
-      fit_criterion = "neg_loglike"
+      fit_criterion = "likelihood"
     )
 
     expect_equal(
