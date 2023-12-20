@@ -12,7 +12,7 @@ fit_data(
   with_early_component = FALSE,
   intercept_form = FALSE,
   use_minmax = FALSE,
-  fit_criterion = "neg_loglike"
+  fit_criterion = "likelihood"
 )
 }
 \arguments{
@@ -37,7 +37,7 @@ targets the maximum of the goodness-of-fit values across datasets.}
 fit by seeking its minimum.
 \itemize{
 \item \code{ks}: Kolmogorov-Smirnov statistic.
-\item \code{neg_loglike}: Negative log-likelihood.
+\item \code{likelihood}: Negative log-likelihood.
 }}
 }
 \value{

@@ -7,14 +7,17 @@ output:
     df_print: paged
 ---
 
+<!--
+to build:
+devtools::build_rmd("vignettes/articles/cw1995_analysis.Rmd")
+-->
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
 ```
-
-
 
 ```{r echo = FALSE, results = "hide", message = FALSE}
 library(printr)
@@ -30,31 +33,47 @@ knitr::include_graphics("cw1995_fig2a.png")
 We start by loading the LATERmodel package:
 
 ```{r setup, echo = TRUE, results = "hide", message = FALSE}
-#library(LATERmodel)
-library(devtools)
-load_all()
+library(LATERmodel)
 ```
 
 ## Loading the raw data
 
-A digitised version of the raw data from this study is included in this package in the `carpenter_williams_1995` variable.
-Because we are only interested in participant *a* here, we will first extract only their data from this variable and then have a look at the first few rows:
+A digitised version of the raw data from this study is included in this package in the `LATERmodel::carpenter_williams_1995` variable.
+This variable is a data frame with rows corresponding to trials and with columns named `participant`, `condition`, and `time`.
+This is the recommended format for raw data to be used with the LATERmodel package.
+The `participant` and `condition` columns specify the participant and condition identifiers, respectively, and the `time` column specifies the measured response time (in milliseconds).
+The rows corresponding to each unique combination of `participant` and `condition` are referred to as a *dataset* within this package.
+
+We can have a look at the first few rows to see the structure of the variable:
 ```{r}
-raw_data <- subset(x = LATERmodel::carpenter_williams_1995, participant == "a")
-print(head(raw_data))
+head(LATERmodel::carpenter_williams_1995);
 ```
+
+Because we are only interested in participant *a* here, we will extract only their data from this variable:
+```{r}
+raw_data <- subset(x = LATERmodel::carpenter_williams_1995, participant == "a");
+```
+
 
 ## Pre-processing the data
 
-The functions within this `LATERmodel` package expect the data to be in a particular format which does not correspond to the format of `raw_data`.
-We can use the `prepare_data` function to convert the data into this expected format:
+The data analysis functions within this `LATERmodel` package require the raw data to first undergo pre-processing using the `LATERmodel::prepare_data` function.
+We can pass our `raw_data` variable as the argument to the `rt` parameter of `LATERmodel::prepare_data` to perform such pre-processing:
 
 ```{r}
-data <- LATERmodel::prepare_data(rt = raw_data)
-print(head(data))
+data <- LATERmodel::prepare_data(rt = raw_data);
 ```
 
-As shown above, the data now has columns for `name` (formed from the combination of the `participant` and `condition` columns in the raw data), `promptness` (the inverse of the response time), and `e_cdf` (the evaluated empirical cumulative distribution function).
+Note that if the raw data had response times in units other than milliseconds, we could have used the `time_unit` parameter to `LATERmodel::prepare_data` to specify the units (see the documentation for `LATERmodel::prepare_data` for details).
+
+We can again view the first few rows to inspect the output of the pre-processing:
+
+```{r}
+head(data);
+```
+
+As shown above, the data now has columns for `name` (formed from the combination of the `participant` and `condition` columns in the raw data), `promptness` (the inverse of the `time` column, which is now specified in seconds), and `e_cdf` (the evaluated empirical cumulative distribution function for each unique `name`).
+
 To make the condition names match those used in @Carpenter1995, we can recode them:
 
 ```{r}
@@ -67,25 +86,34 @@ data$name <- dplyr::recode_factor(
   a_p50 = "50%",
   a_p75 = "75%",
   a_p90 = "90%",
-  a_p95 = "95%")
+  a_p95 = "95%");
 ```
 
 ## Visualising the observed data
 
-We can use the `LATERmodel::reciprobit_plot` function to visualise the observed data.
-As shown below, this produces a figure in a similar format to the visualisation in @Carpenter1995.
+We can use the `LATERmodel::reciprobit_plot` function to visualise the observed data in 'reciprobit' space:
+
+```{r message = FALSE, warning = FALSE}
+LATERmodel::reciprobit_plot(plot_data = data);
+```
+
+We can use parameters of the `LATERmodel::reciprobit_plot` function to increase the similarity of the plot structure with the visualisation in @Carpenter1995.
+In particular, we can specify the specific y-axis breakpoints using the `probit_breaks` parameter (specified in percentages) and the specific x-axis breakpoints using the `time_breaks` parameter (specified in seconds).
+Furthermore, we can apply our own specific customisations by using functions from the `ggplot2` visualisation package.
+Here, we will use such functionality to set the axis limits (where the x-axis is specified in promptness units and the y-axis is specified in probability units) and allow data points to be visible beyond the axis limits.
+Note that such customisations are just to be able to more closely match the appearance of the @Carpenter1995 figure.
 
 ```{r fig.show='hold', out.width = c("50%", "50%"), message = FALSE, warning = FALSE}
-knitr::include_graphics("cw1995_fig2a.png")
+knitr::include_graphics("cw1995_fig2a.png");  # show the C&W figure in this document
 plot <- LATERmodel::reciprobit_plot(
   plot_data = data,
   probit_breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9),
-  time_breaks = c(100, 150, 200, 300, 500, 1000) / 1000)
+  time_breaks = c(0.1, 0.15, 0.2, 0.3, 0.5, 1.0));
 plot + ggplot2::coord_cartesian(
   xlim = c(1 / 0.1, 1 / 2),
   ylim = c(0.1 / 100, 99.9 / 100),
   expand = FALSE,
-  clip = "off")
+  clip = "off");
 ```
 
 ## Fitting the observed data
@@ -96,30 +124,41 @@ We will first consider how we can fit a LATER model to the observations from a s
 First, we will extract the relevant data:
 
 ```{r}
-data_p05 <- subset(x = data, name == "5%")
+data_p05 <- subset(x = data, name == "5%");
 ```
 
 We can use the `LATERmodel::fit_data` function to perform the fitting.
 When fitting a single dataset, there are two key decisions to make:
 
 1. Whether the model should include an *early* component, corresponding to very fast responses. The inclusion of this model component is controlled by the `with_early_component` parameter to `LATERmodel::fit_data`.
-2. Whether the fit should be optimised so that the minimum is sought for the negative log-likelihood or for the Kolmogorov-Smirnov value. This decision is specified in the `fit_criterion` parameter, which is either `neg_loglike` (the default) or `ks`.
+2. Whether the fit should be optimised so that the minimum is sought for the negative of the likelihood (i.e., the maximum of the likelihood) or for the Kolmogorov-Smirnov value. This decision is specified in the `fit_criterion` parameter, which is either `likelihood` (the default, if not specified) or `ks`.
 
-Here, we will fit the data including an early component and using the negative log-likelihood as the fit criterion:
+Here, we will fit the data including an early component.
+Because we haven't specified the `fit_criterion`, it will use the `likelihood` criterion.
 
 ```{r}
 fit_p05 <- LATERmodel::fit_data(
   data = data_p05,
-  with_early_component = TRUE,
-  fit_criterion = "neg_loglike")
+  with_early_component = TRUE);
 ```
 
 The returned variable, here named `fit_p05`, contains information about the fitting parameters and the fitting result.
-The best-fitting parameter values can be accessed through:
+The best-fitting parameter values can be accessed in the `named_fit_params` variable:
 
 ```{r}
-fit_p05$named_fit_params
+fit_p05$named_fit_params;
 ```
+
+To be able to interpret these model parameters, we can briefly consider the components of a LATER model (see @Carpenter2023 for detailed information on the LATER model).
+The key component of the LATER model is the assumption that the inverse of response time (promptness) can be modeled as a Normal distribution.
+This distribution can either be parameterised via the location ($\mu$) and scale ($\sigma$) parameters or via the intercept ($k$) and scale ($\sigma$) parameters.
+The location and intercept parameters are related via $\mu = k \sigma$ and $k = \mu / \sigma$; the need for these two different parameterisations will become clearer below.
+Because of this ambiguity of the first parameter to the distribution, we refer to it as $a$ within this package.
+
+<!-- keep going from here -->
+
+The best-fitting values for these model parameters are shown in the `mu` and `sigma` columns, respectively.
+
 
 We can visualise the fit by passing these parameters to the `LATERmodel::reciprobit_plot` function:
 
@@ -186,7 +225,7 @@ For the example above, we can set `share_sigma = TRUE`:
 fit_shift <- LATERmodel::fit_data(
   data = data,
   with_early_component = TRUE,
-  fit_criterion = "neg_loglike",
+  fit_criterion = "likelihood",
   share_sigma = TRUE)
 ```
 
@@ -222,7 +261,7 @@ Finally, to share the intercept parameter, we also set the parameter `share_a` t
 fit_swivel <- LATERmodel::fit_data(
   data = data,
   with_early_component = TRUE,
-  fit_criterion = "neg_loglike",
+  fit_criterion = "likelihood",
   intercept_form = TRUE,
   share_a = TRUE)
 ```

@@ -14,3 +14,32 @@ test_that(
 
   }
 )
+
+test_that(
+  "comparison is as expected",
+  {
+
+    # mock up some dummy fit results
+    fit_a = list(aic=10.0);
+    fit_b = list(aic=5.0);
+
+    fits = list(a=fit_a, b=fit_b);
+
+    #comparison <- LATERmodel::compare_fits(fits = fits)
+    comparison <- compare_fits(fits = fits);
+
+    # first row should be the preferred model
+    expect_true(comparison[1, "preferred"]);
+    expect_false(comparison[2, "preferred"]);
+
+    expect_equal(comparison$aic, c(5, 10));
+
+    expect_equal(comparison$preferred_rel_fit_delta_aic, c(0, -5));
+
+    expect_equal(
+      comparison$preferred_rel_fit_evidence_ratio,
+      c(1, calc_evidence_ratio(5, 10))
+    );
+
+  }
+)
