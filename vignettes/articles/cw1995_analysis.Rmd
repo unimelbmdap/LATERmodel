@@ -47,12 +47,12 @@ The rows corresponding to a particular unique combination of `participant` and `
 
 We can look at the first few rows, using the `head` function, to see the structure of the variable:
 ```{r}
-head(LATERmodel::carpenter_williams_1995);
+head(LATERmodel::carpenter_williams_1995)
 ```
 
 Because `LATERmodel::carpenter_williams_1995` contains trials for both participants *a* and *b* but we are only interested in participant *a* here, we will extract only the trials for participant *a* from this variable using the `subset` function:
 ```{r}
-raw_data <- subset(x = LATERmodel::carpenter_williams_1995, participant == "a");
+raw_data <- subset(x = LATERmodel::carpenter_williams_1995, participant == "a")
 ```
 
 
@@ -62,7 +62,7 @@ The data analysis functions within this `LATERmodel` package require the raw dat
 We pass our `raw_data` variable as the argument to the `rt` parameter of `LATERmodel::prepare_data` to perform such pre-processing:
 
 ```{r}
-data <- LATERmodel::prepare_data(rt = raw_data);
+data <- LATERmodel::prepare_data(rt = raw_data)
 ```
 
 Note that if the raw data had response times in units other than milliseconds, we could have used the `time_unit` parameter to `LATERmodel::prepare_data` to specify the units (see the documentation for `LATERmodel::prepare_data` for details).
@@ -70,7 +70,7 @@ Note that if the raw data had response times in units other than milliseconds, w
 We can again view the first few rows to inspect the output of the pre-processing:
 
 ```{r}
-head(data);
+head(data)
 ```
 
 As shown above, the data now has columns for `name` (formed from the combination of the `participant` and `condition` columns in the raw data), `promptness` (the inverse of the `time` column, which is now specified in seconds), and `e_cdf` (the evaluated empirical cumulative distribution function for each dataset).
@@ -87,7 +87,8 @@ data$name <- dplyr::recode_factor(
   a_p50 = "50%",
   a_p75 = "75%",
   a_p90 = "90%",
-  a_p95 = "95%");
+  a_p95 = "95%"
+)
 ```
 
 ## Visualising the observed data
@@ -95,7 +96,7 @@ data$name <- dplyr::recode_factor(
 We can use the `LATERmodel::reciprobit_plot` function to visualise the observed data in 'reciprobit' space:
 
 ```{r message = FALSE, warning = FALSE}
-LATERmodel::reciprobit_plot(plot_data = data);
+LATERmodel::reciprobit_plot(plot_data = data)
 ```
 
 This produces a plot in which the empirical cumulative distribution function values for each of the datasets in `data` are shown as individual points, with points from different datasets shown in different colours (the colours can be set to user-specified values using the `LATERmodel::prepare_data` function referred to earlier, if desired).
@@ -110,16 +111,19 @@ Here, we will use such functionality to set the axis limits (where the x-axis is
 Note that such customisations are just to be able to more closely match the appearance of the @Carpenter1995 figure and are not generally required.
 
 ```{r fig.show='hold', out.width = c("50%", "50%"), message = FALSE, warning = FALSE}
-knitr::include_graphics("cw1995_fig2a.png");  # show the C&W figure in this document
+knitr::include_graphics("cw1995_fig2a.png")
+# show the C&W figure in this document
 plot <- LATERmodel::reciprobit_plot(
   plot_data = data,
   probit_breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9),
-  time_breaks = c(0.1, 0.15, 0.2, 0.3, 0.5, 1.0));
+  time_breaks = c(0.1, 0.15, 0.2, 0.3, 0.5, 1.0)
+)
 plot + ggplot2::coord_cartesian(
   xlim = c(10, 0.5),
   ylim = c(0.001, 0.999),
   expand = FALSE,
-  clip = "off");
+  clip = "off"
+)
 ```
 
 ## Fitting the observed data
@@ -130,7 +134,7 @@ We will first consider how we can fit a LATER model to the observations from a s
 First, because `data` contains trials from all the conditions for participant *a*, we will extract only the relevant data:
 
 ```{r}
-data_p05 <- subset(x = data, name == "5%");
+data_p05 <- subset(x = data, name == "5%")
 ```
 
 We can use the `LATERmodel::fit_data` function to perform the fitting.
@@ -141,14 +145,15 @@ Here, we will fit the data including an early component.
 ```{r}
 fit_p05 <- LATERmodel::fit_data(
   data = data_p05,
-  with_early_component = TRUE);
+  with_early_component = TRUE
+)
 ```
 
 The returned variable, here named `fit_p05`, contains information about the fitting parameters and the fitting result.
 The best-fitting parameter values can be accessed in the `named_fit_params` variable:
 
 ```{r}
-fit_p05$named_fit_params;
+fit_p05$named_fit_params
 ```
 
 To be able to interpret these model parameters, we will briefly consider the components of a LATER model (see @Carpenter2023 for detailed information on the LATER model).
@@ -172,7 +177,8 @@ To visually assess the reasonableness of the fitted parameters, we can visualise
 ```{r message = FALSE, warning = FALSE}
 LATERmodel::reciprobit_plot(
   plot_data = data_p05,
-  fit_params = fit_p05$named_fit_params);
+  fit_params = fit_p05$named_fit_params
+)
 ```
 
 ### Multiple datasets fitted separately
@@ -183,7 +189,8 @@ Here, we will use it to fit all the conditions in the example data:
 ```{r}
 individual_named_fit_params <- LATERmodel::individual_later_fit(
   df = data,
-  with_early_component = TRUE)
+  with_early_component = TRUE
+)
 ```
 
 This function directly returns the `named_fit_params` component of the fit information:
@@ -201,12 +208,14 @@ plot <- LATERmodel::reciprobit_plot(
   plot_data = data,
   fit_params = individual_named_fit_params,
   probit_breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9),
-  time_breaks = c(0.1, 0.15, 0.2, 0.3, 0.5, 1.0));
+  time_breaks = c(0.1, 0.15, 0.2, 0.3, 0.5, 1.0)
+)
 plot + ggplot2::coord_cartesian(
   xlim = c(10, 0.5),
   ylim = c(0.001, 0.999),
   expand = FALSE,
-  clip = "off");
+  clip = "off"
+)
 ```
 
 Note that, in contrast to @Carpenter1995, our plots show the fits from the complete model rather than attempting to isolate the early and primary components.
@@ -231,13 +240,14 @@ To implement the example above, we would set `share_sigma = TRUE`:
 fit_shift <- LATERmodel::fit_data(
   data = data,
   with_early_component = TRUE,
-  share_sigma = TRUE);
+  share_sigma = TRUE
+)
 ```
 
 When we look at the fitted parameter values, we can see that they each have the same `sigma` (and $s$, which is just $1 / \sigma$) - as expected by our request that the $\sigma$ parameter be shared across datasets:
 
 ```{r}
-fit_shift$named_fit_params;
+fit_shift$named_fit_params
 ```
 
 We can once again visualise the fits:
@@ -245,7 +255,8 @@ We can once again visualise the fits:
 ```{r message = FALSE, warning = FALSE}
 LATERmodel::reciprobit_plot(
   plot_data = data,
-  fit_params = fit_shift$named_fit_params);
+  fit_params = fit_shift$named_fit_params
+)
 ```
 
 #### A 'swivel' sharing arrangement
@@ -264,7 +275,8 @@ fit_swivel <- LATERmodel::fit_data(
   data = data,
   with_early_component = TRUE,
   intercept_form = TRUE,
-  share_a = TRUE);
+  share_a = TRUE
+)
 ```
 
 Again, we can inspect the fitted parameters:
@@ -279,7 +291,8 @@ Note how the fits are constrained such that they would each meet at a common poi
 ```{r message = FALSE, warning = FALSE}
 LATERmodel::reciprobit_plot(
   plot_data = data,
-  fit_params = fit_swivel$named_fit_params);
+  fit_params = fit_swivel$named_fit_params
+)
 ```
 
 #### Comparing 'shift' and 'swivel' fits
@@ -289,13 +302,13 @@ To quantify and compare how well the different sharing arrangements fit the data
 This function accepts a named list of variables returned from `LATERmodel::fit_data`, so we will first construct this variable using the fits for 'shift' and 'swivel':
 
 ```{r}
-fits <- list(shift=fit_shift, swivel=fit_swivel);
+fits <- list(shift = fit_shift, swivel = fit_swivel)
 ```
 
 We then pass this variable as the argument to the `fits` parameter in the `LATERmodel::compare_fits` function:
 
 ```{r}
-LATERmodel::compare_fits(fits = fits);
+LATERmodel::compare_fits(fits = fits)
 ```
 
 The output from this function contains a row for each of the provided fit results, ordered such that the first row contains the 'best' ('preferred') fit.

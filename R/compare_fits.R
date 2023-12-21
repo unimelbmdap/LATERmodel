@@ -17,50 +17,48 @@
 #' data <- dplyr::filter(
 #'   carpenter_williams_1995, participant == "a",
 #'   condition == "p05" | condition == "p95"
-#' );
-#' data <- prepare_data(data);
-#' fit_a <- fit_data(data = data, share_a = TRUE);
-#' fit_b <- fit_data(data = data, share_sigma = TRUE);
-#' comparison <- compare_fits(fits=list(a=fit_a, b=fit_b));
+#' )
+#' data <- prepare_data(data)
+#' fit_a <- fit_data(data = data, share_a = TRUE)
+#' fit_b <- fit_data(data = data, share_sigma = TRUE)
+#' comparison <- compare_fits(fits = list(a = fit_a, b = fit_b))
 #' @export
 compare_fits <- function(fits) {
+  aics <- unlist(lapply(fits, (function(fit) fit$aic)))
 
-  aics <- unlist(lapply(fits, (function (fit) fit$aic)));
+  min_aic <- min(aics)
 
-  min_aic <- min(aics);
-
-  delta_aics <- lapply(aics, (function (aic) min_aic - aic));
+  delta_aics <- lapply(aics, (function(aic) min_aic - aic))
 
   evidence_ratios <- lapply(
     aics,
-    (function (aic) calc_evidence_ratio(aic_model_1 = min_aic, aic_model_2 = aic))
-  );
+    (function(aic) calc_evidence_ratio(aic_model_1 = min_aic, aic_model_2 = aic))
+  )
 
   preferred <- lapply(
     aics,
-    (function (aic) aic == min_aic));
+    (function(aic) aic == min_aic)
+  )
 
   data <- data.frame(
     aic = aics,
     preferred_rel_fit_delta_aic = unlist(delta_aics),
     preferred_rel_fit_evidence_ratio = unlist(evidence_ratios),
-    preferred = unlist(preferred));
+    preferred = unlist(preferred)
+  )
 
   # sort rows in order of AIC
-  data <- data[order(data$aic),];
+  data <- data[order(data$aic), ]
 
-  return(data);
-
+  return(data)
 }
 
 # calculate the 'evidence ratio' between a pair of AIC values.
 # the returned value is expressed in relation to `aic_model_1` being the
 # 'more correct' model compared to `aic_model_2`.
 calc_evidence_ratio <- function(aic_model_1, aic_model_2) {
-
-  delta_aic <- aic_model_2 - aic_model_1;
+  delta_aic <- aic_model_2 - aic_model_1
 
   # see Motulsky & Christopolous (2004), p. 146
-  return(1 / exp(-0.5 * delta_aic));
-
+  return(1 / exp(-0.5 * delta_aic))
 }
