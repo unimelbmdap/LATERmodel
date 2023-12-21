@@ -4,13 +4,20 @@
 \alias{individual_later_fit}
 \title{Fit individual LATER model to each dataset in a dataframe of datasets}
 \usage{
-individual_later_fit(df, with_early_component = FALSE)
+individual_later_fit(df, with_early_component = FALSE, fit_criterion = "ks")
 }
 \arguments{
 \item{df}{A dataframe with columns: \code{time}, \code{name}, \code{promptness}, and \code{e_cdf}}
 
 \item{with_early_component}{If \code{TRUE}, the model contains a second 'early'
 component that is absent when \code{FALSE} (the default).}
+
+\item{fit_criterion}{String indicating the criterion used to optimise the
+fit by seeking its minimum.
+\itemize{
+\item \code{ks}: Kolmogorov-Smirnov statistic.
+\item \code{neg_loglike}: Negative log-likelihood.
+}}
 }
 \value{
 A dataframe with one row for each named dataset in \code{df} and columns

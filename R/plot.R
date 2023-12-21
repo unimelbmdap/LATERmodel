@@ -1,7 +1,8 @@
 #' Plot reaction times and LATER model fit in reciprobit axes
 #'
 #' @param plot_data A dataframe with columns: `time`, `name`, `promptness`,
-#' and `e_cdf`
+#' and `e_cdf`. Optionally, there may be a `color` column, which contains
+#' hex values, one unique hex value per named dataset
 #' @param fit_params A dataframe with one row for each named dataset and columns
 #' equal to the LATER model parameters returned by `fit_data$named_fit_params`
 #' @param time_breaks Desired tick marks on the x axis, expressed in
@@ -44,6 +45,12 @@ reciprobit_plot <- function(
     "#666666"
   )
 
+  if ("color" %in% names(plot_data)) {
+    colors <- c(unique(plot_data$color), color_brewer_colors)
+  } else {
+    colors <- color_brewer_colors
+  }
+
   # Remove points not defined in probit space
   plotting_data <- dplyr::filter(plot_data, .data$e_cdf > 0)
 
@@ -69,12 +76,12 @@ reciprobit_plot <- function(
       # Main axis
       name = "Latency(s)",
       breaks = 1 / time_breaks,
-      labels = formatC(time_breaks, digits=2, format="g"),
+      labels = formatC(time_breaks, digits = 2, format = "g"),
       minor_breaks = NULL,
       # Secondary axis
       sec.axis = ggplot2::dup_axis(
         name = "Promptness (1/s)",
-        labels = formatC(1 / time_breaks, digits = 2, format="g")
+        labels = formatC(1 / time_breaks, digits = 2, format = "g")
       )
     ) +
     ggplot2::scale_y_continuous(
@@ -95,7 +102,7 @@ reciprobit_plot <- function(
       ylim = yrange
     ) +
     ggplot2::scale_color_manual(
-      values = as.character(color_brewer_colors),
+      values = as.character(colors),
       labels = unique(plot_data$name)
     ) +
     ggplot2::theme_minimal() +
@@ -149,6 +156,10 @@ reciprobit_plot <- function(
 #' @param df A dataframe with columns: `time`, `name`, `promptness`, and `e_cdf`
 #' @param with_early_component If `TRUE`, the model contains a second 'early'
 #'  component that is absent when `FALSE` (the default).
+#' @param fit_criterion String indicating the criterion used to optimise the
+#'  fit by seeking its minimum.
+#'   * `ks`: Kolmogorov-Smirnov statistic.
+#'   * `neg_loglike`: Negative log-likelihood.
 #'
 #' @return A dataframe with one row for each named dataset in `df` and columns
 #' equal to the LATER model parameters returned by fit_data$named_fit_params
@@ -158,15 +169,43 @@ reciprobit_plot <- function(
 #' a <- dplyr::filter(carpenter_williams_1995, participant == "a")
 #' df <- prepare_data(a)
 #' fit_params <- individual_later_fit(df)
-individual_later_fit <- function(df, with_early_component = FALSE) {
+individual_later_fit <- function(
+    df,
+    with_early_component = FALSE,
+    fit_criterion = "ks") {
   df |>
     dplyr::group_by(.data$name) |>
     dplyr::group_modify(
-      ~ fit_data(
+      ~ extract_fit_params_and_stat(
         .x,
-        with_early_component = with_early_component
-      )$named_fit_params,
+        with_early_component = with_early_component,
+        fit_criterion = fit_criterion
+      ),
       .keep = TRUE
     ) |>
     dplyr::ungroup()
+}
+
+extract_fit_params_and_stat <- function(
+    data,
+    with_early_component,
+    fit_criterion) {
+  this_list <- fit_data(
+    data,
+    with_early_component = with_early_component,
+    fit_criterion = fit_criterion
+  )
+
+  df <- data.frame(
+    this_list$named_fit_params,
+    this_list$fit_criterion,
+    this_list$optim_result$value,
+    this_list$loglike,
+    this_list$aic
+  ) |>
+    dplyr::rename("stat" = "this_list.optim_result.value")
+
+  names(df) <- sub("^this_list.", "", names(df))
+
+  df
 }
