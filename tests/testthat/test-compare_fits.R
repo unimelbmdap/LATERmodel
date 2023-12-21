@@ -21,7 +21,6 @@ test_that(
 
     fits <- list(a = fit_a, b = fit_b)
 
-    # comparison <- LATERmodel::compare_fits(fits = fits)
     comparison <- compare_fits(fits = fits)
 
     # first row should be the preferred model

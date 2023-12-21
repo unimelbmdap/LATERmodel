@@ -115,7 +115,9 @@ knitr::include_graphics("cw1995_fig2a.png")
 # show the C&W figure in this document
 plot <- LATERmodel::reciprobit_plot(
   plot_data = data,
-  probit_breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9),
+  probit_breaks = c(
+    0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9
+  ),
   time_breaks = c(0.1, 0.15, 0.2, 0.3, 0.5, 1.0)
 )
 plot + ggplot2::coord_cartesian(
@@ -207,7 +209,9 @@ knitr::include_graphics("cw1995_fig2a.png")
 plot <- LATERmodel::reciprobit_plot(
   plot_data = data,
   fit_params = individual_named_fit_params,
-  probit_breaks = c(0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9),
+  probit_breaks = c(
+    0.1, 0.5, 1, 2, 5, 10, 20, 30, 50, 70, 80, 90, 95, 98, 99, 99.5, 99.9
+  ),
   time_breaks = c(0.1, 0.15, 0.2, 0.3, 0.5, 1.0)
 )
 plot + ggplot2::coord_cartesian(

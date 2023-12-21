@@ -1,18 +1,19 @@
 #' Compares the goodness-of-fit of a set of fit outcomes.
 #'
 #' @details
-#' The 'evidence ratio' is calculated as per Motulsky & Christopolous (2004), p. 146.
+#' The 'evidence ratio' is calculated as per Motulsky & Christopolous (2004),
+#' p. 146.
 #' @param fits A list where each item has a name that identifies the fit and a
 #'  value given by the output of `LATERmodel::fit_data`.
-#' @returns A list of fit comparison results, ordered such that the fit with the lowest
-#'  AIC value is in the first row.
+#' @returns A list of fit comparison results, ordered such that the fit with
+#'  the lowest AIC value is in the first row.
 #' * `aic` contains the fit AIC values.
-#' * `preferred_rel_fit_delta_aic` is the AIC value for the fit relative to the AIC of
-#'   the fit with the lowest AIC (preferred AIC - current AIC).
-#' * `preferred_rel_fit_evidence_ratio` is the evidence ratio for the fit with the
-#'   lowest AIC relative to the current fit.
-#' * `preferred` is a boolean that indicates whether the fit has the lowest AIC value
-#'   among the fits (is 'preferred').
+#' * `preferred_rel_fit_delta_aic` is the AIC value for the fit relative to
+#'  the AIC of the fit with the lowest AIC (preferred AIC - current AIC).
+#' * `preferred_rel_fit_evidence_ratio` is the evidence ratio for the fit with
+#'  the lowest AIC relative to the current fit.
+#' * `preferred` is a boolean that indicates whether the fit has the lowest
+#'  AIC value among the fits (is 'preferred').
 #' @examples
 #' data <- dplyr::filter(
 #'   carpenter_williams_1995, participant == "a",
@@ -32,7 +33,13 @@ compare_fits <- function(fits) {
 
   evidence_ratios <- lapply(
     aics,
-    (function(aic) calc_evidence_ratio(aic_model_1 = min_aic, aic_model_2 = aic))
+    (
+      function(aic) {
+        calc_evidence_ratio(
+          aic_model_1 = min_aic, aic_model_2 = aic
+        )
+      }
+    )
   )
 
   preferred <- lapply(

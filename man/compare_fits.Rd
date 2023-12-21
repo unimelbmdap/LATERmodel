@@ -11,31 +11,32 @@ compare_fits(fits)
 value given by the output of \code{LATERmodel::fit_data}.}
 }
 \value{
-A list of fit comparison results, ordered such that the fit with the lowest
-AIC value is in the first row.
+A list of fit comparison results, ordered such that the fit with
+the lowest AIC value is in the first row.
 \itemize{
 \item \code{aic} contains the fit AIC values.
-\item \code{preferred_rel_fit_delta_aic} is the AIC value for the fit relative to the AIC of
-the fit with the lowest AIC (preferred AIC - current AIC).
-\item \code{preferred_rel_fit_evidence_ratio} is the evidence ratio for the fit with the
-lowest AIC relative to the current fit.
-\item \code{preferred} is a boolean that indicates whether the fit has the lowest AIC value
-among the fits (is 'preferred').
+\item \code{preferred_rel_fit_delta_aic} is the AIC value for the fit relative to
+the AIC of the fit with the lowest AIC (preferred AIC - current AIC).
+\item \code{preferred_rel_fit_evidence_ratio} is the evidence ratio for the fit with
+the lowest AIC relative to the current fit.
+\item \code{preferred} is a boolean that indicates whether the fit has the lowest
+AIC value among the fits (is 'preferred').
 }
 }
 \description{
 Compares the goodness-of-fit of a set of fit outcomes.
 }
 \details{
-The 'evidence ratio' is calculated as per Motulsky & Christopolous (2004), p. 146.
+The 'evidence ratio' is calculated as per Motulsky & Christopolous (2004),
+p. 146.
 }
 \examples{
 data <- dplyr::filter(
   carpenter_williams_1995, participant == "a",
   condition == "p05" | condition == "p95"
-);
-data <- prepare_data(data);
-fit_a <- fit_data(data = data, share_a = TRUE);
-fit_b <- fit_data(data = data, share_sigma = TRUE);
-comparison <- compare_fits(fits=list(a=fit_a, b=fit_b));
+)
+data <- prepare_data(data)
+fit_a <- fit_data(data = data, share_a = TRUE)
+fit_b <- fit_data(data = data, share_sigma = TRUE)
+comparison <- compare_fits(fits = list(a = fit_a, b = fit_b))
 }
