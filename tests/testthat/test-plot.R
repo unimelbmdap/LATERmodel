@@ -1,6 +1,10 @@
 test_that("Carpenter and Williams (1995) Fig1a individual fits", {
   df <- prepare_data(dplyr::filter(carpenter_williams_1995, participant == "a"))
-  fit_params <- individual_later_fit(df, with_early_component = TRUE)
+  fit_params <- individual_later_fit(
+    df,
+    with_early_component = TRUE,
+    fit_criterion = "likelihood"
+  )
   disp_reciprobit <- reciprobit_plot(df, fit_params)
   vdiffr::expect_doppelganger("C&W(1995)Fig1a", disp_reciprobit)
 })

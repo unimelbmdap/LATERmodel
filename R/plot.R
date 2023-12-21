@@ -172,7 +172,7 @@ reciprobit_plot <- function(
 individual_later_fit <- function(
     df,
     with_early_component = FALSE,
-    fit_criterion = "ks") {
+    fit_criterion = "likelihood") {
   df |>
     dplyr::group_by(.data$name) |>
     dplyr::group_modify(
