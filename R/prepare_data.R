@@ -1,11 +1,21 @@
 #' Prepares data for reciprobit plot
 #'
 #' @param rt Vector of reaction times for a single participant, or a dataframe
-#' with a column called `time` with the reaction times and another called
-#' `color` that contains one hexadecimal color code for each participant.
-#' Optionally may contain a column `name` to use as labels for each dataset.
+#' containing a column called `time` with the reaction times and optional other
+#' columns:
+#' - a column called `name` with a unique label for each dataset
+#' - a column called `participant` with a unique id per participant and another
+#' called `condition` with a unique label for each condition. In this case the
+#' `name` for each dataset will be constructed as
+#' `participant`+`name_separator`+`condition`.
+#' - a column called `color` that contains one hexadecimal color code for each
+#' dataset. In this case the `name` for each dataset will be set to be the name
+#' of the color.
 #' @param time_unit Units of the reaction times in rt_vector,
 #' must be one of "ms", "ds", or "s".
+#' @param name_separator If the `rt` dataframe does not contain a `name` column,
+#' but does have `particpant` and `condition` columns, the `name` for each
+#' dataset will be constructed as `participant`+`name_separator`+`condition`.
 #'
 #' @return A dataframe with columns: `time`, `color`, `name`, `promptness`,
 #' and `e_cdf`.
@@ -14,7 +24,7 @@
 #'
 #' @examples
 #' df <- prepare_data(carpenter_williams_1995)
-prepare_data <- function(rt, time_unit = "ms") {
+prepare_data <- function(rt, time_unit = "ms", name_separator = "_") {
   if (typeof(rt) == "double") {
     plot_data <- data.frame(
       time = convert_to_seconds(rt, time_unit = time_unit)
@@ -38,7 +48,7 @@ prepare_data <- function(rt, time_unit = "ms") {
     } else {
       plot_data <- plot_data |>
         dplyr::mutate(
-          name = as.factor(paste(.data$participant, .data$condition, sep = "_"))
+          name = as.factor(paste(.data$participant, .data$condition, sep = name_separator))
         )
     }
   }

@@ -4,16 +4,29 @@
 \alias{prepare_data}
 \title{Prepares data for reciprobit plot}
 \usage{
-prepare_data(rt, time_unit = "ms")
+prepare_data(rt, time_unit = "ms", name_separator = "_")
 }
 \arguments{
 \item{rt}{Vector of reaction times for a single participant, or a dataframe
-with a column called \code{time} with the reaction times and another called
-\code{color} that contains one hexadecimal color code for each participant.
-Optionally may contain a column \code{name} to use as labels for each dataset.}
+containing a column called \code{time} with the reaction times and optional other
+columns:
+\itemize{
+\item a column called \code{name} with a unique label for each dataset
+\item a column called \code{participant} with a unique id per participant and another
+called \code{condition} with a unique label for each condition. In this case the
+\code{name} for each dataset will be constructed as
+\code{participant}+\code{name_separator}+\code{condition}.
+\item a column called \code{color} that contains one hexadecimal color code for each
+dataset. In this case the \code{name} for each dataset will be set to be the name
+of the color.
+}}
 
 \item{time_unit}{Units of the reaction times in rt_vector,
 must be one of "ms", "ds", or "s".}
+
+\item{name_separator}{If the \code{rt} dataframe does not contain a \code{name} column,
+but does have \code{particpant} and \code{condition} columns, the \code{name} for each
+dataset will be constructed as \code{participant}+\code{name_separator}+\code{condition}.}
 }
 \value{
 A dataframe with columns: \code{time}, \code{color}, \code{name}, \code{promptness},
