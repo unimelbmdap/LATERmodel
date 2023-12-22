@@ -48,7 +48,13 @@ prepare_data <- function(rt, time_unit = "ms", name_separator = "_") {
     } else {
       plot_data <- plot_data |>
         dplyr::mutate(
-          name = as.factor(paste(.data$participant, .data$condition, sep = name_separator))
+          name = as.factor(
+            paste(
+              .data$participant,
+              .data$condition,
+              sep = name_separator
+            )
+          )
         )
     }
   }
