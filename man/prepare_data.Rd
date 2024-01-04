@@ -4,12 +4,12 @@
 \alias{prepare_data}
 \title{Prepares data for reciprobit plot}
 \usage{
-prepare_data(rt, time_unit = "ms", name_separator = "_")
+prepare_data(raw_data, time_unit = "ms", name_separator = "_")
 }
 \arguments{
-\item{rt}{Vector of reaction times for a single participant, or a dataframe
-containing a column called \code{time} with the reaction times and optional other
-columns:
+\item{raw_data}{Vector of reaction times for a single participant, or a
+dataframe containing a column called \code{time} with the reaction times and
+optional other columns:
 \itemize{
 \item a column called \code{name} with a unique label for each dataset
 \item a column called \code{participant} with a unique id per participant and another
@@ -24,8 +24,8 @@ of the color.
 \item{time_unit}{Units of the reaction times in rt_vector,
 must be one of "ms", "ds", or "s".}
 
-\item{name_separator}{If the \code{rt} dataframe does not contain a \code{name} column,
-but does have \code{particpant} and \code{condition} columns, the \code{name} for each
+\item{name_separator}{If the \code{raw_data} dataframe does not contain a \code{name} column,
+but does have \code{participant} and \code{condition} columns, the \code{name} for each
 dataset will be constructed as \code{participant}+\code{name_separator}+\code{condition}.}
 }
 \value{
