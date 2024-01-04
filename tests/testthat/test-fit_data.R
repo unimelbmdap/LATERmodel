@@ -400,7 +400,7 @@ test_that(
 
 
 test_that(
-  "Two datasets without sharing raise a warning",
+  "Two datasets without sharing raise an error",
   {
     n <- 500
 
@@ -428,7 +428,7 @@ test_that(
 
     data <- rbind(data_a, data_b)
 
-    expect_warning(fit_data(data = data))
+    expect_error(fit_data(data = data))
 
     expect_no_warning(fit_data(data = data, share_a = TRUE))
   }

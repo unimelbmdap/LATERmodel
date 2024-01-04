@@ -73,7 +73,7 @@ fit_data <- function(
   )
 
   if (fit_info$multiple_ds_no_share_warning) {
-    warning(
+    rlang::abort(
       "Multiple datasets were provided, but there are no shared parameters"
     )
   }
