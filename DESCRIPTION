@@ -37,7 +37,9 @@ Suggests:
     styler,
     testthat (>= 3.0.0),
     vdiffr,
+    printr,
     withr
 Config/testthat/edition: 3
 URL: https://github.com/unimelbmdap/LATERmodel
 BugReports: https://github.com/unimelbmdap/LATERmodel/issues
+Config/Needs/website: rmarkdown

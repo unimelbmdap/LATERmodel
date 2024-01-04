@@ -4,7 +4,11 @@
 \alias{individual_later_fit}
 \title{Fit individual LATER model to each dataset in a dataframe of datasets}
 \usage{
-individual_later_fit(df, with_early_component = FALSE, fit_criterion = "ks")
+individual_later_fit(
+  df,
+  with_early_component = FALSE,
+  fit_criterion = "likelihood"
+)
 }
 \arguments{
 \item{df}{A dataframe with columns: \code{time}, \code{name}, \code{promptness}, and \code{e_cdf}}

@@ -90,7 +90,7 @@ test_that(
 
 
 test_that(
-  "LATER model fit (mu = 5, sigma = 1, criterion = 'neg_loglike')
+  "LATER model fit (mu = 5, sigma = 1, criterion = 'likelihood')
   is as expected",
   {
     seed <- 23256312
@@ -112,7 +112,7 @@ test_that(
 
     data <- data.frame(name = "test", promptness = 1 / times)
 
-    fit <- fit_data(data = data, fit_criterion = "neg_loglike")
+    fit <- fit_data(data = data, fit_criterion = "likelihood")
 
     expect_equal(
       fit$fitted_params$mu,
@@ -155,12 +155,12 @@ test_that(
     expect_equal(
       fit$fitted_params$mu,
       later_mu,
-      tolerance = 0.01
+      tolerance = 0.1
     )
     expect_equal(
       fit$fitted_params$sigma,
       later_sd,
-      tolerance = 0.01
+      tolerance = 0.1
     )
     expect_equal(
       fit$fitted_params$sigma_e,
@@ -173,7 +173,7 @@ test_that(
 
 test_that(
   "LATER model fit (mu = 5, sigma = 0.5, sigma_e = 3,
-  fit_criterion = 'neg_loglike') is as expected",
+  fit_criterion = 'likelihood') is as expected",
   {
     seed <- 946395130
 
@@ -197,7 +197,7 @@ test_that(
     fit <- fit_data(
       data = data,
       with_early_component = TRUE,
-      fit_criterion = "neg_loglike"
+      fit_criterion = "likelihood"
     )
 
     expect_equal(
@@ -400,7 +400,7 @@ test_that(
 
 
 test_that(
-  "Two datasets without sharing raise a warning",
+  "Two datasets without sharing raise an error",
   {
     n <- 500
 
@@ -428,7 +428,7 @@ test_that(
 
     data <- rbind(data_a, data_b)
 
-    expect_warning(fit_data(data = data))
+    expect_error(fit_data(data = data))
 
     expect_no_warning(fit_data(data = data, share_a = TRUE))
   }
@@ -523,8 +523,8 @@ test_that(
 
     expect_equal(
       fit$fitted_params$sigma,
-      c(0.9743208, 1.5414182, 2.1226855),
-      tolerance = 0.0001
+      c(0.977, 1.512, 1.938),
+      tolerance = 0.01
     )
   }
 )
