@@ -61,10 +61,10 @@ raw_data <- subset(x = LATERmodel::carpenter_williams_1995, participant == "b")
 ## Pre-processing the data
 
 The data analysis functions within this `LATERmodel` package require the raw data to first undergo pre-processing using the `LATERmodel::prepare_data` function.
-We pass our `raw_data` variable as the argument to the `rt` parameter of `LATERmodel::prepare_data` to perform such pre-processing:
+We pass our `raw_data` variable as the argument to the `raw_data` parameter of `LATERmodel::prepare_data` to perform such pre-processing:
 
 ```{r}
-data <- LATERmodel::prepare_data(rt = raw_data)
+data <- LATERmodel::prepare_data(raw_data = raw_data)
 ```
 
 ::: {.note}
