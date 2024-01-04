@@ -38,8 +38,7 @@ compare_fits <- function(fits) {
         calc_evidence_ratio(
           aic_model_1 = min_aic, aic_model_2 = aic
         )
-      }
-    )
+      })
   )
 
   preferred <- lapply(
