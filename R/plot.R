@@ -45,6 +45,10 @@ reciprobit_plot <- function(
     "#666666"
   )
 
+  # Make sure plot_data is sorted by the name column, otherwise the color labels
+  # (set with unique(plot_data$name)) do not correspond to the dataset names
+  plot_data <- dplyr::arrange(plot_data, .data$name)
+
   if ("color" %in% names(plot_data)) {
     colors <- c(unique(plot_data$color), color_brewer_colors)
   } else {
@@ -114,7 +118,19 @@ reciprobit_plot <- function(
   if (!is.null(fit_params)) {
     if (!"name" %in% colnames(fit_params)) {
       fit_params <- fit_params |>
-        tibble::rownames_to_column(var = "name")
+        tibble::rownames_to_column(var = "name") |>
+        dplyr::mutate(
+          name = factor(.data$name, levels = unique(plot_data$name))
+        )
+    }
+
+    fit_params <- dplyr::arrange(fit_params, .data$name)
+
+    if (!all.equal(unique(fit_params$name), unique(plot_data$name))) {
+      rlang::abort(
+        "The names of the datasets in plot_data and fit_params do not match, or
+        have different orders."
+      )
     }
 
     x_eval <- seq(
@@ -198,14 +214,11 @@ extract_fit_params_and_stat <- function(
 
   df <- data.frame(
     this_list$named_fit_params,
-    this_list$fit_criterion,
-    this_list$optim_result$value,
-    this_list$loglike,
-    this_list$aic
-  ) |>
-    dplyr::rename("stat" = "this_list.optim_result.value")
-
-  names(df) <- sub("^this_list.", "", names(df))
+    fit_criterion = this_list$fit_criterion,
+    stat = this_list$optim_result$value,
+    loglike = this_list$loglike,
+    aic = this_list$aic
+  )
 
   df
 }
