@@ -30,7 +30,7 @@ reciprobit_plot <- function(
     plot_data,
     fit_params = NULL,
     time_breaks = c(0.1, 0.2, 0.3, 0.5, 1),
-    probit_breaks = c(1, 5, 10, 20, 50, 80, 90, 95, 99),
+    probit_breaks = c(0.1, 1, 5, 10, 20, 50, 80, 90, 95, 99, 99.9),
     z_breaks = c(-2, -1, 0, 1, 2),
     xrange = NULL,
     yrange = NULL) {
@@ -78,7 +78,7 @@ reciprobit_plot <- function(
     ggplot2::geom_point() +
     ggplot2::scale_x_reverse(
       # Main axis
-      name = "Latency(s)",
+      name = "Latency (s)",
       breaks = 1 / time_breaks,
       labels = formatC(time_breaks, digits = 2, format = "g"),
       minor_breaks = NULL,
@@ -126,7 +126,14 @@ reciprobit_plot <- function(
 
     fit_params <- dplyr::arrange(fit_params, .data$name)
 
-    if (!all.equal(unique(fit_params$name), unique(plot_data$name))) {
+    if (
+      !isTRUE(
+        all.equal(
+          as.character(unique(fit_params$name)),
+          as.character(unique(plot_data$name))
+        )
+      )
+    ) {
       rlang::abort(
         "The names of the datasets in plot_data and fit_params do not match, or
         have different orders."
