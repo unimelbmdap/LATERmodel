@@ -25,7 +25,7 @@
 #' @examples
 #' df <- prepare_data(carpenter_williams_1995)
 prepare_data <- function(raw_data, time_unit = "ms", name_separator = "_") {
-  if (typeof(raw_data) == "double") {
+  if (typeof(raw_data) %in% c("double", "integer")) {
     plot_data <- data.frame(
       time = convert_to_seconds(raw_data, time_unit = time_unit)
     ) |>
@@ -35,6 +35,8 @@ prepare_data <- function(raw_data, time_unit = "ms", name_separator = "_") {
       dplyr::mutate(
         time = convert_to_seconds(.data$time, time_unit = time_unit)
       )
+  } else {
+    rlang::abort('The raw data must be of type "double", "integer", or "list".')
   }
 
   # If no name column, create dataset names from unique colors or from
