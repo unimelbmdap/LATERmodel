@@ -1,8 +1,8 @@
 #' Prepares data for reciprobit plot
 #'
-#' @param rt Vector of reaction times for a single participant, or a dataframe
-#' containing a column called `time` with the reaction times and optional other
-#' columns:
+#' @param raw_data Vector of reaction times for a single participant, or a
+#' dataframe containing a column called `time` with the reaction times and
+#' optional other columns:
 #' - a column called `name` with a unique label for each dataset
 #' - a column called `participant` with a unique id per participant and another
 #' called `condition` with a unique label for each condition. In this case the
@@ -13,8 +13,8 @@
 #' of the color.
 #' @param time_unit Units of the reaction times in rt_vector,
 #' must be one of "ms", "ds", or "s".
-#' @param name_separator If the `rt` dataframe does not contain a `name` column,
-#' but does have `particpant` and `condition` columns, the `name` for each
+#' @param name_separator If the `raw_data` dataframe does not contain a `name` column,
+#' but does have `participant` and `condition` columns, the `name` for each
 #' dataset will be constructed as `participant`+`name_separator`+`condition`.
 #'
 #' @return A dataframe with columns: `time`, `color`, `name`, `promptness`,
@@ -24,17 +24,19 @@
 #'
 #' @examples
 #' df <- prepare_data(carpenter_williams_1995)
-prepare_data <- function(rt, time_unit = "ms", name_separator = "_") {
-  if (typeof(rt) == "double") {
+prepare_data <- function(raw_data, time_unit = "ms", name_separator = "_") {
+  if (typeof(raw_data) %in% c("double", "integer")) {
     plot_data <- data.frame(
-      time = convert_to_seconds(rt, time_unit = time_unit)
+      time = convert_to_seconds(raw_data, time_unit = time_unit)
     ) |>
       dplyr::mutate(color = "#1B9E77")
-  } else if (typeof(rt) == "list") {
-    plot_data <- rt |>
+  } else if (typeof(raw_data) == "list") {
+    plot_data <- raw_data |>
       dplyr::mutate(
         time = convert_to_seconds(.data$time, time_unit = time_unit)
       )
+  } else {
+    rlang::abort('The raw data must be of type "double", "integer", or "list".')
   }
 
   # If no name column, create dataset names from unique colors or from

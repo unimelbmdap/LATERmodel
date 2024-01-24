@@ -8,7 +8,7 @@ reciprobit_plot(
   plot_data,
   fit_params = NULL,
   time_breaks = c(0.1, 0.2, 0.3, 0.5, 1),
-  probit_breaks = c(1, 5, 10, 20, 50, 80, 90, 95, 99),
+  probit_breaks = c(0.1, 1, 5, 10, 20, 50, 80, 90, 95, 99, 99.9),
   z_breaks = c(-2, -1, 0, 1, 2),
   xrange = NULL,
   yrange = NULL

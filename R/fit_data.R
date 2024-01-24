@@ -15,7 +15,7 @@
 #' @param fit_criterion String indicating the criterion used to optimise the
 #'  fit by seeking its minimum.
 #'   * `ks`: Kolmogorov-Smirnov statistic.
-#'   * `neg_loglike`: Negative log-likelihood.
+#'   * `likelihood`: Negative log-likelihood.
 #' @returns A list of fitting arguments and outcomes.
 #' * `fitted_params` is a named list of fitted parameter values.
 #' * `named_fit_params` is a data frame with rows given by the dataset names
@@ -39,10 +39,10 @@ fit_data <- function(
     with_early_component = FALSE,
     intercept_form = FALSE,
     use_minmax = FALSE,
-    fit_criterion = "ks") {
-  # only support fitting KS or neg loglike criteria
-  if (!(fit_criterion %in% c("ks", "neg_loglike"))) {
-    rlang::abort("Fit criterion must be `ks` or `neg_loglike`")
+    fit_criterion = "likelihood") {
+  # only support fitting KS or neg likelihood criteria
+  if (!(fit_criterion %in% c("ks", "likelihood"))) {
+    rlang::abort("Fit criterion must be `ks` or `likelihood`")
   }
 
   # initialise a container with the provided arguments
@@ -73,7 +73,7 @@ fit_data <- function(
   )
 
   if (fit_info$multiple_ds_no_share_warning) {
-    warning(
+    rlang::abort(
       "Multiple datasets were provided, but there are no shared parameters"
     )
   }
@@ -331,7 +331,7 @@ objective_function <- function(params, data, fit_info) {
         ks = calc_ks_stat(.data$ecdf_p, .data$p)
       ) |>
       dplyr::pull(.data$ks)
-  } else if (fit_info$fit_criterion == "neg_loglike") {
+  } else if (fit_info$fit_criterion == "likelihood") {
     fit_val <- data |>
       dplyr::group_by(.data$name) |>
       dplyr::mutate(

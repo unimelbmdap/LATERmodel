@@ -30,7 +30,7 @@ reciprobit_plot <- function(
     plot_data,
     fit_params = NULL,
     time_breaks = c(0.1, 0.2, 0.3, 0.5, 1),
-    probit_breaks = c(1, 5, 10, 20, 50, 80, 90, 95, 99),
+    probit_breaks = c(0.1, 1, 5, 10, 20, 50, 80, 90, 95, 99, 99.9),
     z_breaks = c(-2, -1, 0, 1, 2),
     xrange = NULL,
     yrange = NULL) {
@@ -44,6 +44,10 @@ reciprobit_plot <- function(
     "#a6761d",
     "#666666"
   )
+
+  # Make sure plot_data is sorted by the name column, otherwise the color labels
+  # (set with unique(plot_data$name)) do not correspond to the dataset names
+  plot_data <- dplyr::arrange(plot_data, .data$name)
 
   if ("color" %in% names(plot_data)) {
     colors <- c(unique(plot_data$color), color_brewer_colors)
@@ -74,7 +78,7 @@ reciprobit_plot <- function(
     ggplot2::geom_point() +
     ggplot2::scale_x_reverse(
       # Main axis
-      name = "Latency(s)",
+      name = "Latency (s)",
       breaks = 1 / time_breaks,
       labels = formatC(time_breaks, digits = 2, format = "g"),
       minor_breaks = NULL,
@@ -114,7 +118,26 @@ reciprobit_plot <- function(
   if (!is.null(fit_params)) {
     if (!"name" %in% colnames(fit_params)) {
       fit_params <- fit_params |>
-        tibble::rownames_to_column(var = "name")
+        tibble::rownames_to_column(var = "name") |>
+        dplyr::mutate(
+          name = factor(.data$name, levels = unique(plot_data$name))
+        )
+    }
+
+    fit_params <- dplyr::arrange(fit_params, .data$name)
+
+    if (
+      !isTRUE(
+        all.equal(
+          as.character(unique(fit_params$name)),
+          as.character(unique(plot_data$name))
+        )
+      )
+    ) {
+      rlang::abort(
+        "The names of the datasets in plot_data and fit_params do not match, or
+        have different orders."
+      )
     }
 
     x_eval <- seq(
@@ -172,7 +195,7 @@ reciprobit_plot <- function(
 individual_later_fit <- function(
     df,
     with_early_component = FALSE,
-    fit_criterion = "ks") {
+    fit_criterion = "likelihood") {
   df |>
     dplyr::group_by(.data$name) |>
     dplyr::group_modify(
@@ -198,14 +221,11 @@ extract_fit_params_and_stat <- function(
 
   df <- data.frame(
     this_list$named_fit_params,
-    this_list$fit_criterion,
-    this_list$optim_result$value,
-    this_list$loglike,
-    this_list$aic
-  ) |>
-    dplyr::rename("stat" = "this_list.optim_result.value")
-
-  names(df) <- sub("^this_list.", "", names(df))
+    fit_criterion = this_list$fit_criterion,
+    stat = this_list$optim_result$value,
+    loglike = this_list$loglike,
+    aic = this_list$aic
+  )
 
   df
 }
