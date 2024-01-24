@@ -97,6 +97,8 @@ fit_data <- function(
   fit_info$optim_result <- stats::optim(
     fit_info$start_points,
     objective_function,
+    control = list(maxit=100000),
+    hessian = TRUE,
     data = data,
     fit_info = fit_info,
   )
@@ -447,6 +449,10 @@ dnorm_with_early <- function(x, later_mu, later_sd, early_sd, log = FALSE) {
         ) / early_sd
     ) / (2 * sqrt(2 * pi))
   )
+
+  # `p` can get very slightly below zero
+  # if so, replace it with a very small positive value
+  p <- replace(p, which(p <= 0), 1e-300)
 
   if (log) {
     p <- base::log(p)
