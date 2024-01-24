@@ -296,6 +296,7 @@ convert_a_to_mu_and_k <- function(a, sigma, intercept_form) {
 # returns the KS statistic given a set of model parameter values
 # and the observed data
 objective_function <- function(params, data, fit_info) {
+
   labelled_params <- unpack_params(
     params = params,
     n_a = fit_info$n_a,
@@ -311,6 +312,7 @@ objective_function <- function(params, data, fit_info) {
       intercept_form = fit_info$intercept_form
     )
   )
+
 
   if (fit_info$fit_criterion == "ks") {
     fit_val <- data |>
@@ -470,7 +472,7 @@ set_param_counts <- function(fit_info) {
 
   fit_info$n_mu <- ifelse(
     fit_info$intercept_form,
-    fit_info$n_sigma,
+    fit_info$n_datasets,
     fit_info$n_a
   )
 
