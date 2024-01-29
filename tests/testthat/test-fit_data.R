@@ -528,3 +528,61 @@ test_that(
     )
   }
 )
+
+test_that(
+  "Fitting with shared sigma and intercept form works",
+  {
+    n <- 500
+
+    shared_sigma <- 2.0
+    sigma_e <- NULL
+
+    k_a <- 2.0
+    k_b <- 3.0
+
+    mu_a <- k_a * shared_sigma
+    mu_b <- k_b * shared_sigma
+
+    data_a <- data.frame(
+      name = "a",
+      promptness = 1 / simulate_dataset(
+        n = n,
+        later_mu = mu_a,
+        later_sd = shared_sigma,
+        early_sd = sigma_e,
+        seed = 377877
+      )
+    )
+
+    data_b <- data.frame(
+      name = "b",
+      promptness = 1 / simulate_dataset(
+        n = n,
+        later_mu = mu_b,
+        later_sd = shared_sigma,
+        early_sd = sigma_e,
+        seed = 979696
+      )
+    )
+
+    data <- rbind(data_a, data_b)
+
+    fit <- fit_data(
+      data = data,
+      intercept_form = TRUE,
+      share_sigma = TRUE
+    )
+
+    expect_equal(
+      fit$fitted_params$sigma,
+      2.007,
+      tolerance = 0.001
+    )
+
+    expect_equal(
+      fit$fitted_params$k,
+      c(1.967, 2.991),
+      tolerance = 0.001
+    )
+  }
+)
