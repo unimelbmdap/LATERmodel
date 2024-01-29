@@ -470,7 +470,7 @@ set_param_counts <- function(fit_info) {
 
   fit_info$n_mu <- ifelse(
     fit_info$intercept_form,
-    fit_info$n_sigma,
+    fit_info$n_datasets,
     fit_info$n_a
   )
 
