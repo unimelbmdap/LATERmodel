@@ -16,7 +16,7 @@ to the p-values based on Holm, 1979, A simple sequentially rejective
 multiple test procedure}
 }
 \value{
-A dataframe with columns \code{name1}, \code{name2}, \code{D}, and \code{p-value}
+A dataframe with columns \code{name1}, \code{name2}, \code{D}, and \code{p_value}
 }
 \description{
 Apply two-sample KS test to all pairs of datasets contained within a

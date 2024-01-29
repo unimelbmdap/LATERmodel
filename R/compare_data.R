@@ -7,7 +7,7 @@
 #' to the p-values based on Holm, 1979, A simple sequentially rejective
 #' multiple test procedure
 #'
-#' @return A dataframe with columns `name1`, `name2`, `D`, and `p-value`
+#' @return A dataframe with columns `name1`, `name2`, `D`, and `p_value`
 #' @export
 #'
 #' @importFrom utils combn
