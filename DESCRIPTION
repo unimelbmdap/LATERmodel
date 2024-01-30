@@ -1,5 +1,5 @@
 Package: LATERmodel
-Title: What the Package Does (One Line, Title Case)
+Title: Linear Approach to Threshold with Ergodic Rate for Reaction Times
 Version: 0.1.0
 Authors@R: 
     c(person(given = "Maria del Mar",
@@ -18,7 +18,7 @@ Authors@R:
              email = "e.tescari@unimelb.edu.au",
              comment = c(ORCID = "0000-0003-1157-4897"))
     )
-Description: What the package does (one paragraph).
+Description: This package implements the Linear Approach to Threshold with Ergodic Rate (LATER) model, which predicts distributions of reaction times and summarises them with as little as two free parameters. This package allows for easy visualisation and comparison of datasets, along with fitting of datasets using the LATER model.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
