@@ -4,7 +4,14 @@
 \alias{simulate_dataset}
 \title{Simulate a dataset given model parameters.}
 \usage{
-simulate_dataset(n, later_mu, later_sd, early_sd = NULL, seed = NULL)
+simulate_dataset(
+  n,
+  later_mu,
+  later_sd,
+  early_sd = NULL,
+  seed = NULL,
+  allow_negative_times = FALSE
+)
 }
 \arguments{
 \item{n}{Number of samples (trials)}
@@ -17,13 +24,18 @@ simulate_dataset(n, later_mu, later_sd, early_sd = NULL, seed = NULL)
 or \code{NULL} if there is no early component (the default).}
 
 \item{seed}{Seed for the random number generator}
+
+\item{allow_negative_times}{If \code{FALSE} (the default), any random samples
+that have negative response times are iteratively replaced such that all
+returned samples are positive. If \code{TRUE}, no such replacement is performed.}
 }
 \value{
 Vector of response times (in seconds)
 }
 \description{
 Generates samples from a set of provided LATER model parameters,
-iteratively replacing invalid samples (reaction times <= 0).
+with the option to iteratively replace invalid samples (reaction
+times <= 0).
 }
 \examples{
 simulate_dataset(n = 100, later_mu = 5, later_sd = 1)
