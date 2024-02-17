@@ -97,6 +97,7 @@ fit_data <- function(
   fit_info$optim_result <- stats::optim(
     fit_info$start_points,
     objective_function,
+    control = list(parscale = abs(fit_info$start_points), maxit = 100000),
     data = data,
     fit_info = fit_info,
   )
