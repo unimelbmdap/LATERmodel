@@ -586,3 +586,24 @@ test_that(
     )
   }
 )
+
+
+test_that(
+  "Simulated data obeys the negative allowance option",
+  {
+    for (allow_negative_times in c(FALSE, TRUE)) {
+      rt <- simulate_dataset(
+        n = 100,
+        later_mu = 1,
+        later_sd = 1,
+        early_sd = 1,
+        seed = 1,
+        allow_negative_times = allow_negative_times
+      )
+
+      has_negative_times <- sum(rt <= 0) > 0
+
+      expect_equal(has_negative_times, allow_negative_times)
+    }
+  }
+)
