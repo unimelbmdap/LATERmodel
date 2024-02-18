@@ -97,7 +97,7 @@ fit_data <- function(
   fit_info$optim_result <- stats::optim(
     fit_info$start_points,
     objective_function,
-    control = list(parscale = abs(fit_info$start_points), maxit = 100000),
+    control = list(parscale = abs(fit_info$start_points), maxit = 1000000),
     data = data,
     fit_info = fit_info,
   )
@@ -258,10 +258,13 @@ unpack_params <- function(params, n_a, n_sigma, n_sigma_e) {
   # next are the sigma parameters
   sigma <- params[(n_a + 1):(n_a + n_sigma)]
 
+  sigma <- exp(sigma)
+
   labelled_params <- list(a = a, sigma = sigma)
 
   if (n_sigma_e > 0) {
     sigma_e <- params[(n_a + n_sigma + 1):length(params)]
+    sigma_e <- exp(sigma_e)
     labelled_params$sigma_e <- sigma_e
   }
 
@@ -312,6 +315,7 @@ objective_function <- function(params, data, fit_info) {
       intercept_form = fit_info$intercept_form
     )
   )
+
 
   if (fit_info$fit_criterion == "ks") {
     fit_val <- data |>
@@ -379,6 +383,8 @@ calc_start_points <- function(data, fit_info) {
       dplyr::pull(.data$val)
   )
 
+  log_sigma_values <- log(sigma_values)
+
   if (fit_info$intercept_form) {
     a_values <- mu_values / sigma_values
     if (fit_info$n_a == 1) {
@@ -388,7 +394,7 @@ calc_start_points <- function(data, fit_info) {
     a_values <- mu_values
   }
 
-  start_points <- c(a_values, sigma_values)
+  start_points <- c(a_values, log_sigma_values)
 
   if (fit_info$with_early_component) {
     sigma_e_values <- (
@@ -397,6 +403,8 @@ calc_start_points <- function(data, fit_info) {
         dplyr::summarize(val = stats::sd(.data$promptness) * 3) |>
         dplyr::pull(.data$val)
     )
+
+    sigma_e_values <- log(sigma_e_values)
 
     start_points <- c(start_points, sigma_e_values)
   }
