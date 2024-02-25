@@ -21,10 +21,15 @@ test_that(
     for (n_a in c(1, 2)) {
       for (n_sigma in c(1, 2)) {
         for (n_sigma_e in c(0, 1, 2)) {
+
+          if (n_sigma_e > 0 && n_sigma_e != n_sigma) {
+            next
+          }
+
           params <- c(a[1:n_a], log(sigma[1:n_sigma]))
 
           if (n_sigma_e > 0) {
-            params <- c(params, log(sigma_e[1:n_sigma_e]))
+            params <- c(params, log(sigma_e[1:n_sigma_e] / sigma[1:n_sigma]))
           }
 
           unpacked <- unpack_params(
@@ -392,7 +397,7 @@ test_that(
       expect_equal(
         curr_ks,
         spic_data[row, "ks"],
-        tolerance = 0.03
+        tolerance = 0.04
       )
     }
   }

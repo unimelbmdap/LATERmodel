@@ -265,6 +265,7 @@ unpack_params <- function(params, n_a, n_sigma, n_sigma_e) {
   if (n_sigma_e > 0) {
     sigma_e <- params[(n_a + n_sigma + 1):length(params)]
     sigma_e <- exp(sigma_e)
+    sigma_e <- sigma_e * sigma
     labelled_params$sigma_e <- sigma_e
   }
 
@@ -397,14 +398,17 @@ calc_start_points <- function(data, fit_info) {
   start_points <- c(a_values, log_sigma_values)
 
   if (fit_info$with_early_component) {
-    sigma_e_values <- (
-      data |>
-        dplyr::group_by(.data$i_sigma_e) |>
-        dplyr::summarize(val = stats::sd(.data$promptness) * 3) |>
-        dplyr::pull(.data$val)
-    )
 
-    sigma_e_values <- log(sigma_e_values)
+    #sigma_e_values <- (
+    #  data |>
+    #    dplyr::group_by(.data$i_sigma_e) |>
+    #    dplyr::summarize(val = stats::sd(.data$promptness) * 3) |>
+    #    dplyr::pull(.data$val)
+    #)
+
+    #sigma_e_values <- log(sigma_e_values)
+
+    sigma_e_values <- log(rep(3, length.out = fit_info$n_sigma_e))
 
     start_points <- c(start_points, sigma_e_values)
   }
