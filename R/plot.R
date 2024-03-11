@@ -91,12 +91,12 @@ reciprobit_plot <- function(
     ggplot2::scale_y_continuous(
       # Main axis
       name = "Cumulative percent probability",
-      trans = "probit", breaks = probit_breaks / 100,
+      transform = "probit", breaks = probit_breaks / 100,
       labels = probit_breaks,
       minor_breaks = stats::pnorm(z_breaks),
       # Secondary axis
       sec.axis = ggplot2::sec_axis(
-        trans = stats::qnorm,
+        transform = stats::qnorm,
         name = "Z-score",
         breaks = z_breaks
       )
