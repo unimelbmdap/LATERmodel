@@ -27,10 +27,10 @@ app’s fitting and plotting procedures.
 *	**Fit model** is used to fit your datasets with the LATER model.
 *	**Download results** is used to customise various aspects of the LATER plot 
 (e.g. axis labels, range, and figure size), and to download the figure in 
-various formats, in addition to the raw data that was used to generate such 
+various formats, in addition to the raw data that was used to generate the 
 figure.
-*	**Save/restore session** can be used to save the state of the app at any point 
-in time, which will download a file to your local computer. This file can later 
+*	**Save/restore session** can be used to save the state of the app at any time, 
+which will download a file to your local computer. This file can subsequently 
 be uploaded to the app from the same tab to resume your analysis where you left 
 it.
 
@@ -135,11 +135,11 @@ are optional.
 
 # Customising a plot
 On the **Download results** tab, use the *Name of fit* drop-down menu to select 
-the fit you wish to visalise and customise. Options include:
+the fit you wish to visualise and customise. Options include:
 
 *	*Time unit*: latencies are expressed as milliseconds, deciseconds, or seconds.
-*	*Label for x-axis*: the x-axis can be labelled either “Latency” or “Reaction time”
-*	*Time range (ms)*: the range of values on the x axis, in milliseconds, to be visualised .
+*	*Label for x-axis*: the x-axis can be labelled either “Latency” or “Reaction time”.
+*	*Time range (ms)*: the range of values on the x axis, in milliseconds, to be visualised.
 *	*Probability range*: the range of values on the y axis to be visualised.
 *	*Reciprobit axes*: By default, figures are plotted with Promptness on the 
 x-axis, and Z-score on the y-axis. Selecting this option will also include 
