@@ -69,6 +69,13 @@ reciprobit_plot <- function(
     xrange <- rev(xrange)
   }
 
+  # Prepare for deprecation in `trans` argument after ggplot 3.5.0
+  if (packageVersion("ggplot2") < "3.5.0") {
+    trans_arg <- list(trans = stats::qnorm)
+  } else {
+    trans_arg <- list(transform = stats::qnorm)
+  }
+
   plot <- plotting_data |>
     ggplot2::ggplot(ggplot2::aes(
       x = .data$promptness,
@@ -95,11 +102,15 @@ reciprobit_plot <- function(
       labels = probit_breaks,
       minor_breaks = stats::pnorm(z_breaks),
       # Secondary axis
-      sec.axis = ggplot2::sec_axis(
-        trans = stats::qnorm,
-        name = "Z-score",
-        breaks = z_breaks
-      )
+      sec.axis =
+        do.call(
+          ggplot2::sec_axis,
+          c(
+            list(name = "Z-score",
+            breaks = z_breaks),
+            trans_arg
+          )
+        )
     ) +
     ggplot2::coord_cartesian(
       xlim = xrange,
