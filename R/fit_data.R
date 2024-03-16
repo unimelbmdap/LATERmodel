@@ -93,11 +93,19 @@ fit_data <- function(
   # determine reasonable parameter values to start the optimisation
   fit_info$start_points <- calc_start_points(data = data, fit_info = fit_info)
 
+  # the parameter values are divided by these values internally within the optimiser,
+  # to put the parameters on similar scales
+  # see e.g., https://www.r-bloggers.com/2014/01/tuning-optim-with-parscale/
+  parscale <- abs(fit_info$start_points)
+
+  # increase the number of maximum allowable iterations of the optimiser
+  maxit <- 1000000
+
   # run the optimiser
   fit_info$optim_result <- stats::optim(
     fit_info$start_points,
     objective_function,
-    control = list(parscale = abs(fit_info$start_points), maxit = 1000000),
+    control = list(parscale = parscale, maxit = maxit),
     data = data,
     fit_info = fit_info,
   )
@@ -137,6 +145,7 @@ fit_data <- function(
   return(fit_info)
 }
 
+
 #' Evalulate the cumulative distribution function under the model.
 #'
 #' @param q Vector of quantiles
@@ -163,6 +172,7 @@ model_cdf <- function(q, later_mu, later_sd, early_sd = NULL) {
 
   return(p)
 }
+
 
 #' Evalulate the probability density function under the model.
 #'
@@ -244,6 +254,7 @@ calc_loglike <- function(data, fit_info) {
   return(sum(loglike))
 }
 
+
 # calculate Akaike's 'An Information Criterion'
 calc_aic <- function(loglike, n_params) {
   k <- 2
@@ -251,21 +262,23 @@ calc_aic <- function(loglike, n_params) {
   return(aic)
 }
 
+
 # parses a vector of parameters into a named list
 unpack_params <- function(params, n_a, n_sigma, n_sigma_e) {
   # first `n_a` items are the a parameters
   a <- params[1:n_a]
   # next are the sigma parameters
-  sigma <- params[(n_a + 1):(n_a + n_sigma)]
-
-  sigma <- exp(sigma)
+  # note that the log of sigma is used in the optimiser
+  log_sigma <- params[(n_a + 1):(n_a + n_sigma)]
+  sigma <- exp(log_sigma)
 
   labelled_params <- list(a = a, sigma = sigma)
 
   if (n_sigma_e > 0) {
-    sigma_e <- params[(n_a + n_sigma + 1):length(params)]
-    sigma_e <- exp(sigma_e)
-    sigma_e <- sigma_e * sigma
+    # the sigma_e parameter is represented as the log of a multiplier of sigma
+    log_sigma_e_mult <- params[(n_a + n_sigma + 1):length(params)]
+    sigma_e_mult <- exp(log_sigma_e_mult)
+    sigma_e <- sigma * sigma_e_mult
     labelled_params$sigma_e <- sigma_e
   }
 
@@ -298,6 +311,7 @@ convert_a_to_mu_and_k <- function(a, sigma, intercept_form) {
   return(list(mu = mu, k = k))
 }
 
+
 # returns the KS statistic given a set of model parameter values
 # and the observed data
 objective_function <- function(params, data, fit_info) {
@@ -316,7 +330,6 @@ objective_function <- function(params, data, fit_info) {
       intercept_form = fit_info$intercept_form
     )
   )
-
 
   if (fit_info$fit_criterion == "ks") {
     fit_val <- data |>
@@ -399,22 +412,16 @@ calc_start_points <- function(data, fit_info) {
 
   if (fit_info$with_early_component) {
 
-    #sigma_e_values <- (
-    #  data |>
-    #    dplyr::group_by(.data$i_sigma_e) |>
-    #    dplyr::summarize(val = stats::sd(.data$promptness) * 3) |>
-    #    dplyr::pull(.data$val)
-    #)
+    # sigma_e is given by exp(log_sigma_e_mult) * sigma
+    # set each log_sigma_e_mult to log(3), so 3 x sigma
+    log_sigma_e_mult_values <- log(rep(3, length.out = fit_info$n_sigma_e))
 
-    #sigma_e_values <- log(sigma_e_values)
-
-    sigma_e_values <- log(rep(3, length.out = fit_info$n_sigma_e))
-
-    start_points <- c(start_points, sigma_e_values)
+    start_points <- c(start_points, log_sigma_e_mult_values)
   }
 
   return(start_points)
 }
+
 
 # calculates the Kolmogorov-Smirnov statistic
 calc_ks_stat <- function(ecdf_p, cdf_p) {
@@ -466,9 +473,11 @@ dnorm_with_early <- function(x, later_mu, later_sd, early_sd, log = FALSE) {
   return(p)
 }
 
+
 erf <- function(x) {
   return(2 * stats::pnorm(x * sqrt(2)) - 1)
 }
+
 
 # works out how many parameters there are, given the sharing amongst
 # the parameters
