@@ -106,8 +106,10 @@ reciprobit_plot <- function(
         do.call(
           ggplot2::sec_axis,
           c(
-            list(name = "Z-score",
-            breaks = z_breaks),
+            list(
+              name = "Z-score",
+              breaks = z_breaks
+            ),
             trans_arg
           )
         )

@@ -93,8 +93,8 @@ fit_data <- function(
   # determine reasonable parameter values to start the optimisation
   fit_info$start_points <- calc_start_points(data = data, fit_info = fit_info)
 
-  # the parameter values are divided by these values internally within the optimiser,
-  # to put the parameters on similar scales
+  # the parameter values are divided by these values internally within
+  # the optimiser, to put the parameters on similar scales
   # see e.g., https://www.r-bloggers.com/2014/01/tuning-optim-with-parscale/
   parscale <- abs(fit_info$start_points)
 
@@ -411,7 +411,6 @@ calc_start_points <- function(data, fit_info) {
   start_points <- c(a_values, log_sigma_values)
 
   if (fit_info$with_early_component) {
-
     # sigma_e is given by exp(log_sigma_e_mult) * sigma
     # set each log_sigma_e_mult to log(3), so 3 x sigma
     log_sigma_e_mult_values <- log(rep(3, length.out = fit_info$n_sigma_e))
@@ -459,10 +458,10 @@ dnorm_with_early <- function(x, later_mu, later_sd, early_sd, log = FALSE) {
         exp(-(((x - later_mu)**2) / (2 * later_sd**2)))
         * (1 + erf((x - early_mu) / (sqrt(2) * early_sd)))
       ) / later_sd
-        + (
-          exp(-(((x - early_mu)**2) / (2 * early_sd**2)))
-          * (1 + erf((x - later_mu) / (sqrt(2) * later_sd)))
-        ) / early_sd
+      + (
+        exp(-(((x - early_mu)**2) / (2 * early_sd**2)))
+        * (1 + erf((x - later_mu) / (sqrt(2) * later_sd)))
+      ) / early_sd
     ) / (2 * sqrt(2 * pi))
   )
 
