@@ -192,7 +192,7 @@ individual_named_fit_params
 We can plot the result, as before.
 
 ```{r message = FALSE, warning = FALSE}
-plot <- LATERmodel::reciprobit_plot(
+LATERmodel::reciprobit_plot(
   plot_data = data,
   fit_params = individual_named_fit_params
 )
@@ -297,7 +297,7 @@ LATERmodel::compare_fits(fits = fits)
 The output from this function contains a row for each of the provided fit results, ordered such that the first row contains the 'best' ('preferred') fit.
 This assessment of which fit is 'best' is based on the relative Akaike Information Criterion (AIC) values for the fits, where lower AIC values are interpreted as indicating a superior fit in comparison to higher AIC values.
 The `aic` column in the table reports these AIC values, and the `preferred_rel_fit_delta_aic` reports the difference in AIC values between the preferred fit and the AIC value for the fit in the relevant row.
-In this example, the 'swivel' fit is the preferred fit (also indicated in the `preferred` column) as the 'shift' fit has an AIC that is 344.905 units lower than the AIC for the 'swivel' fit.
+In this example, the 'swivel' fit is the preferred fit (also indicated in the `preferred` column) because the 'swivel' fit has an AIC that is lower than the AIC for the 'shift' fit.
 Finally, this comparison is also reported as an 'evidence ratio' in the `preferred_rel_fit_evidence_ratio` column.
 As described in @Motulsky2004, this evidence ratio "tells you the relative likelihood, given your experimental design, of the two models being correct" (p. 147).
 Here, the evidence ratio reported in the 'shift' row is overwhelmingly high, which indicates that the preferred fit (the 'swivel') is much more likely to be the 'correct' fit than the 'shift' (noting that the evidence ratio is calculated as the ratio of the preferred fit to the fit reported in the row).
