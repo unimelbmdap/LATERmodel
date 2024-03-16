@@ -211,6 +211,12 @@ In the following explanation from @Carpenter2023, p. 26, about these different p
 We might be interested in situations in which multiple datasets have the same LATER model parameter value.
 We refer to such a scenario as a *sharing* of model parameters.
 
+::: {.note}
+Note that it can take a long time for the command to fit a complex LATER model with multiple dataset and shared parameters to complete.
+
+:::
+
+
 #### A 'shift' sharing arrangement
 
 For example, multiple datasets might be considered to have the same scale of the primary component ($\sigma$) but vary in the location of the primary component ($\mu$) and the scale of the early component ($\sigma_e$).
@@ -225,6 +231,13 @@ fit_shift <- LATERmodel::fit_data(
   with_early_component = TRUE,
   share_sigma = TRUE
 )
+```
+
+After fitting a LATER model, it is good practice to check that the parameter optimisation algorithm has not reported any issues in producing parameter estimates.
+This information is contained in the `optim_result` element within the value returned by `LATERmodel::fit_data`; in particular, the `convergence` value (where a nonzero value indicates completion problems; see [the documentation for `optim`](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/optim)) and the `message` value (which elaborates on any nonzero `convergence` codes).
+
+```{r}
+fit_shift$optim_result
 ```
 
 When we look at the fitted parameter values, we can see that they each have the same `sigma` (and $s$, which is just $1 / \sigma$) - as expected by our request that the $\sigma$ parameter be shared across datasets:
@@ -262,7 +275,14 @@ fit_swivel <- LATERmodel::fit_data(
 )
 ```
 
-Again, we can inspect the fitted parameters:
+Again, we can check the optimisation convergence:
+
+```{r}
+fit_swivel$optim_result
+
+```
+
+And we can inspect the fitted parameters:
 
 ```{r}
 fit_swivel$named_fit_params

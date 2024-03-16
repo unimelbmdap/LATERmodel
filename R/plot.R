@@ -70,7 +70,7 @@ reciprobit_plot <- function(
   }
 
   # Prepare for deprecation in `trans` argument after ggplot 3.5.0
-  if (packageVersion("ggplot2") < "3.5.0") {
+  if (utils::packageVersion("ggplot2") < "3.5.0") {
     trans_arg <- list(trans = stats::qnorm)
   } else {
     trans_arg <- list(transform = stats::qnorm)
