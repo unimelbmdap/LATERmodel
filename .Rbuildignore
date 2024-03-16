@@ -6,3 +6,4 @@
 ^README\.Rmd$
 ^vignettes/articles$
 ^\.github$
+^LATER\.bib$
