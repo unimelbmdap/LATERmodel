@@ -70,7 +70,7 @@ reciprobit_plot <- function(
   }
 
   # Prepare for deprecation in `trans` argument after ggplot 3.5.0
-  if (packageVersion("ggplot2") < "3.5.0") {
+  if (utils::packageVersion("ggplot2") < "3.5.0") {
     trans_arg <- list(trans = stats::qnorm)
   } else {
     trans_arg <- list(transform = stats::qnorm)
@@ -106,8 +106,10 @@ reciprobit_plot <- function(
         do.call(
           ggplot2::sec_axis,
           c(
-            list(name = "Z-score",
-            breaks = z_breaks),
+            list(
+              name = "Z-score",
+              breaks = z_breaks
+            ),
             trans_arg
           )
         )
