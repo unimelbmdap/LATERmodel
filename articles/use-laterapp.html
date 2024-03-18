@@ -78,8 +78,9 @@
 
     
     
-<p>The <a href="http://172.26.131.77:3838/" class="external-link">LATER fitting</a> R Shiny
-application (“the app”), is designed to provide a simple way to use <a href="https://github.com/unimelbmdap/LATERmodel/" class="external-link">LATERmodel</a> to fit
+<p>The <a href="https://later.researchsoftware.unimelb.edu.au/" class="external-link">LATER
+fitting</a> R Shiny application (“the app”), is designed to provide a
+simple way to use <a href="https://github.com/unimelbmdap/LATERmodel/" class="external-link">LATERmodel</a> to fit
 the LATER model to reaction time data.</p>
 <p>On loading, the app displays a sidebar on the left with a widget to
 upload your data, followed by four tabs:</p>
@@ -122,15 +123,15 @@ package), demonstrates this format:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/sample_n.html" class="external-link">sample_n</a></span><span class="op">(</span><span class="fu">LATERmodel</span><span class="fu">::</span><span class="va"><a href="../reference/carpenter_williams_1995.html">carpenter_williams_1995</a></span>, <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    participant condition time</span></span>
-<span><span class="co">#&gt; 1            a       p50  260</span></span>
-<span><span class="co">#&gt; 2            a       p95  200</span></span>
+<span><span class="co">#&gt; 1            a       p95  160</span></span>
+<span><span class="co">#&gt; 2            a       p90  170</span></span>
 <span><span class="co">#&gt; 3            a       p95  200</span></span>
-<span><span class="co">#&gt; 4            b       p95  130</span></span>
-<span><span class="co">#&gt; 5            b       p95  180</span></span>
-<span><span class="co">#&gt; 6            a       p95  160</span></span>
-<span><span class="co">#&gt; 7            b       p90  230</span></span>
-<span><span class="co">#&gt; 8            b       p95  190</span></span>
-<span><span class="co">#&gt; 9            a       p95  230</span></span>
+<span><span class="co">#&gt; 4            a       p90  180</span></span>
+<span><span class="co">#&gt; 5            a       p90  190</span></span>
+<span><span class="co">#&gt; 6            a       p95  210</span></span>
+<span><span class="co">#&gt; 7            a       p90  180</span></span>
+<span><span class="co">#&gt; 8            a       p95  170</span></span>
+<span><span class="co">#&gt; 9            b       p90  170</span></span>
 <span><span class="co">#&gt; 10           b       p95  190</span></span></code></pre></div>
 <p>In this data file, <em>participant</em> gives a unique identifier for
 each participant tested, <em>condition</em> gives the label for the
