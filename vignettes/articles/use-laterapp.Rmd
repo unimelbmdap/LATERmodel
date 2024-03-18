@@ -9,8 +9,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-The [LATER fitting](http://172.26.131.77:3838/) R Shiny application (“the app”), 
-is designed to provide a simple way to use 
+The [LATER fitting](https://later.researchsoftware.unimelb.edu.au/) R Shiny 
+application (“the app”), is designed to provide a simple way to use 
 [LATERmodel](https://github.com/unimelbmdap/LATERmodel/) to fit the LATER model 
 to reaction time data. 
 

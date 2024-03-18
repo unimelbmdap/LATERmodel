@@ -36,7 +36,8 @@ We will be looking at how we can use the LATERmodel package to load, fit, visual
 If the LATERmodel package has not yet been installed, it can be installed by running the following within R:
 
 ```{r setup, echo = TRUE, results = "hide", message = FALSE, warning = FALSE}
-install.packages("LATERmodel")
+# install.packages("devtools")
+devtools::install_github("unimelbmdap/LATERmodel")
 ```
 
 ## Loading the raw data

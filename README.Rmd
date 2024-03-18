@@ -78,3 +78,5 @@ Visualise the raw data and the best individual fits:
 ```{r}
 reciprobit_plot(data, data_fit)
 ```
+
+For a more detailed analysis using the `LATERmodel` R package, see [this article](https://unimelbmdap.github.io/LATERmodel/articles/cw1995_analysis.html).
