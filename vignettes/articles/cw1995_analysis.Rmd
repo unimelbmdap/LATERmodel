@@ -35,7 +35,7 @@ knitr::include_graphics("cw1995_fig2b.png")
 We will be looking at how we can use the LATERmodel package to load, fit, visualise, and evaluate data in the context of the LATER model of response times.
 If the LATERmodel package has not yet been installed, it can be installed by running the following within R:
 
-```{r setup, echo = TRUE, results = "hide", message = FALSE, warning = FALSE}
+``` r
 # install.packages("devtools")
 devtools::install_github("unimelbmdap/LATERmodel")
 ```
