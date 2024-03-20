@@ -105,7 +105,7 @@ fit_data <- function(
   fit_info$optim_result <- stats::optim(
     fit_info$start_points,
     objective_function,
-    control = list(parscale = parscale, maxit = maxit),
+    control = list(maxit = maxit),
     data = data,
     fit_info = fit_info,
   )
@@ -383,6 +383,7 @@ objective_function <- function(params, data, fit_info) {
 # uses the sample mean and standard deviation of the promptness values
 # to create optimisation starting points
 calc_start_points <- function(data, fit_info) {
+
   mu_values <- (
     data |>
       dplyr::group_by(.data$i_mu) |>
@@ -393,7 +394,17 @@ calc_start_points <- function(data, fit_info) {
   sigma_values <- (
     data |>
       dplyr::group_by(.data$i_sigma) |>
-      dplyr::summarize(val = stats::sd(.data$promptness)) |>
+      dplyr::summarize(
+        sd = stats::sd(.data$promptness),
+        skewness = moments::skewness(.data$promptness)
+      ) |>
+      dplyr::summarize(
+        val = dplyr::if_else(
+          condition = .data$skewness < 0.25,
+          true = .data$sd,
+          false = .data$sd / 2
+        )
+      ) |>
       dplyr::pull(.data$val)
   )
 
@@ -411,9 +422,25 @@ calc_start_points <- function(data, fit_info) {
   start_points <- c(a_values, log_sigma_values)
 
   if (fit_info$with_early_component) {
-    # sigma_e is given by exp(log_sigma_e_mult) * sigma
-    # set each log_sigma_e_mult to log(3), so 3 x sigma
-    log_sigma_e_mult_values <- log(rep(3, length.out = fit_info$n_sigma_e))
+
+    sigma_e_mult_values <- (
+      data |>
+        dplyr::group_by(.data$i_sigma_e) |>
+        dplyr::summarize(
+          sd = stats::sd(.data$promptness),
+          skewness = moments::skewness(.data$promptness)
+        ) |>
+        dplyr::summarize(
+          val = dplyr::if_else(
+            condition = .data$skewness < 0.25,
+            true = 0.5,
+            false = 5
+          )
+        ) |>
+        dplyr::pull(.data$val)
+    )
+
+    log_sigma_e_mult_values <- log(sigma_e_mult_values)
 
     start_points <- c(start_points, log_sigma_e_mult_values)
   }
