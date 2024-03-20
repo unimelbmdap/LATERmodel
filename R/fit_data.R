@@ -101,14 +101,40 @@ fit_data <- function(
   # increase the number of maximum allowable iterations of the optimiser
   maxit <- 1000000
 
-  # run the optimiser
-  fit_info$optim_result <- stats::optim(
-    fit_info$start_points,
-    objective_function,
-    control = list(maxit = maxit),
-    data = data,
-    fit_info = fit_info,
+  jitter_amount <- 0.5
+
+  n_jitters <- 4
+
+  jitters <- gen_jitters(
+    start_points = fit_info$start_points,
+    jitter_amount = jitter_amount,
+    n_jitters = n_jitters
   )
+
+  optim_results <- lapply(
+    X = jitters,
+    FUN = {
+      function (jitter) {
+
+        start_points <- fit_info$start_points + jitter
+
+        # run the optimiser
+        optim_result <- stats::optim(
+            start_points,
+            objective_function,
+            control = list(maxit = maxit),
+            data = data,
+            fit_info = fit_info
+        )
+
+        return(optim_result)
+      }
+    }
+  )
+
+  i_best <- which.max(lapply(X = optim_results, FUN = {function(x) {x$value}}))
+
+  fit_info$optim_result = optim_results[[i_best]]
 
   # convert the vector of parameter values into named parameters
   fit_info$fitted_params <- unpack_params(
@@ -143,6 +169,44 @@ fit_data <- function(
   )
 
   return(fit_info)
+}
+
+
+gen_jitters <- function(start_points, jitter_amount, n_jitters, seed = NULL) {
+
+  seed <- ifelse(
+    is.null(seed),
+    sample.int(n = .Machine$integer.max, size = 1),
+    seed
+  )
+
+  jitter_seeds <- withr::with_seed(
+    seed = seed,
+    code = {sample.int(n = .Machine$integer.max, size = length(start_points))}
+  )
+
+  max_jitters <- abs(start_points * jitter_amount)
+
+  jitter_amounts <- lapply(
+    X = jitter_seeds,
+    FUN = {
+      function (jitter_seed) {
+        withr::with_seed(
+          seed = jitter_seed,
+          code = {
+            stats::runif(
+              n = length(start_points),
+              min = -max_jitters,
+              max = +max_jitters
+            )
+          }
+        )
+      }
+    }
+  )
+
+  return(jitter_amounts)
+
 }
 
 
