@@ -103,12 +103,17 @@ fit_data <- function(
 
   jitter_amount <- 0.5
 
-  n_jitters <- 4
+  n_jitters <- 10
 
   jitters <- gen_jitters(
     start_points = fit_info$start_points,
     jitter_amount = jitter_amount,
     n_jitters = n_jitters
+  )
+
+  jitters <- append(
+    list(rep.int(0, length(fit_info$start_points))),
+    jitters
   )
 
   optim_results <- lapply(
@@ -132,9 +137,11 @@ fit_data <- function(
     }
   )
 
-  i_best <- which.max(lapply(X = optim_results, FUN = {function(x) {x$value}}))
+  i_best <- which.min(lapply(X = optim_results, FUN = {function(x) {x$value}}))
 
-  fit_info$optim_result = optim_results[[i_best]]
+  fit_info$i_best <- i_best
+
+  fit_info$optim_result <- optim_results[[i_best]]
 
   # convert the vector of parameter values into named parameters
   fit_info$fitted_params <- unpack_params(
@@ -182,7 +189,7 @@ gen_jitters <- function(start_points, jitter_amount, n_jitters, seed = NULL) {
 
   jitter_seeds <- withr::with_seed(
     seed = seed,
-    code = {sample.int(n = .Machine$integer.max, size = length(start_points))}
+    code = {sample.int(n = .Machine$integer.max, size = n_jitters)}
   )
 
   max_jitters <- abs(start_points * jitter_amount)
@@ -425,7 +432,9 @@ objective_function <- function(params, data, fit_info) {
         ),
       ) |>
       dplyr::summarize(
-        neg_loglike = -1 * sum(.data$loglike)
+        neg_loglike = -1 * sum(
+          ifelse(.data$loglike == -Inf, -1e12, .data$loglike)
+        )
       ) |>
       dplyr::pull(.data$neg_loglike)
   } else {
@@ -459,14 +468,10 @@ calc_start_points <- function(data, fit_info) {
     data |>
       dplyr::group_by(.data$i_sigma) |>
       dplyr::summarize(
-        sd = stats::sd(.data$promptness),
-        skewness = moments::skewness(.data$promptness)
-      ) |>
-      dplyr::summarize(
         val = dplyr::if_else(
-          condition = .data$skewness < 0.25,
-          true = .data$sd,
-          false = .data$sd / 2
+          condition = moments::skewness(.data$promptness) < 0.25,
+          true = stats::sd(.data$promptness),
+          false = stats::sd(.data$promptness) / 2
         )
       ) |>
       dplyr::pull(.data$val)
@@ -491,12 +496,8 @@ calc_start_points <- function(data, fit_info) {
       data |>
         dplyr::group_by(.data$i_sigma_e) |>
         dplyr::summarize(
-          sd = stats::sd(.data$promptness),
-          skewness = moments::skewness(.data$promptness)
-        ) |>
-        dplyr::summarize(
           val = dplyr::if_else(
-            condition = .data$skewness < 0.25,
+            condition = moments::skewness(.data$promptness) < 0.25,
             true = 0.5,
             false = 5
           )
