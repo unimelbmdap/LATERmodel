@@ -16,6 +16,14 @@
 #'  fit by seeking its minimum.
 #'   * `ks`: Kolmogorov-Smirnov statistic.
 #'   * `likelihood`: Negative log-likelihood.
+#' @param jitter_settings Settings for running the fitting multiple times with
+#'   randomly-generated offsets ('jitter') applied to the starting estimates.
+#'   \itemize{
+#'     \item{n}{How many jitter iterations to run (default of 7)}
+#'     \item{prop}{The maximum jitter offset, as a proportion of the start
+#'       value (default of 0.5)}
+#'     \item{seed}{Seed for the random jitter generator (default is unseeded)}
+#'   }
 #' @returns A list of fitting arguments and outcomes.
 #' * `fitted_params` is a named list of fitted parameter values.
 #' * `named_fit_params` is a data frame with rows given by the dataset names
@@ -32,14 +40,16 @@
 #' )
 #' @export
 fit_data <- function(
-    data,
-    share_a = FALSE,
-    share_sigma = FALSE,
-    share_sigma_e = FALSE,
-    with_early_component = FALSE,
-    intercept_form = FALSE,
-    use_minmax = FALSE,
-    fit_criterion = "likelihood") {
+  data,
+  share_a = FALSE,
+  share_sigma = FALSE,
+  share_sigma_e = FALSE,
+  with_early_component = FALSE,
+  intercept_form = FALSE,
+  use_minmax = FALSE,
+  fit_criterion = "likelihood",
+  jitter_settings = list(n = 7, prop = 0.5, seed = NULL)
+) {
   # only support fitting KS or neg likelihood criteria
   if (!(fit_criterion %in% c("ks", "likelihood"))) {
     rlang::abort("Fit criterion must be `ks` or `likelihood`")
@@ -53,7 +63,8 @@ fit_data <- function(
     with_early_component = with_early_component,
     intercept_form = intercept_form,
     use_minmax = use_minmax,
-    fit_criterion = fit_criterion
+    fit_criterion = fit_criterion,
+    jitter_settings = jitter_settings
   )
 
   # we only need to deal with the `name` and `promptness` columns in
@@ -93,43 +104,37 @@ fit_data <- function(
   # determine reasonable parameter values to start the optimisation
   fit_info$start_points <- calc_start_points(data = data, fit_info = fit_info)
 
-  # the parameter values are divided by these values internally within
-  # the optimiser, to put the parameters on similar scales
-  # see e.g., https://www.r-bloggers.com/2014/01/tuning-optim-with-parscale/
-  parscale <- abs(fit_info$start_points)
-
-  # increase the number of maximum allowable iterations of the optimiser
-  maxit <- 1000000
-
-  jitter_amount <- 0.5
-
-  n_jitters <- 10
-
-  jitters <- gen_jitters(
+  # calculate a set of 'jitters' to apply to the start points
+  fit_info$jitters <- gen_jitters(
     start_points = fit_info$start_points,
-    jitter_amount = jitter_amount,
-    n_jitters = n_jitters
+    jitter_amount_prop = fit_info$jitter_settings$prop,
+    n_jitters = fit_info$jitter_settings$n
   )
 
-  jitters <- append(
+  # start out with the start points intact (without any jitter)
+  fit_info$jitters <- append(
     list(rep.int(0, length(fit_info$start_points))),
-    jitters
+    fit_info$jitters
   )
 
-  optim_results <- lapply(
-    X = jitters,
-    FUN = {
-      function (jitter) {
+  # initialise the 'cluster' to run the jitter fits in parallel
+  cluster <- parallel::makeCluster(get_n_workers(), type = "FORK")
+
+  fit_info$jitter_optim_results <- parallel::parLapply(
+    cl = cluster,
+    X = fit_info$jitters,
+    fun = {
+      function(jitter) {
 
         start_points <- fit_info$start_points + jitter
 
         # run the optimiser
         optim_result <- stats::optim(
-            start_points,
-            objective_function,
-            control = list(maxit = maxit),
-            data = data,
-            fit_info = fit_info
+          start_points,
+          objective_function,
+          control = list(maxit = 1000000),
+          data = data,
+          fit_info = fit_info
         )
 
         return(optim_result)
@@ -137,11 +142,23 @@ fit_data <- function(
     }
   )
 
-  i_best <- which.min(lapply(X = optim_results, FUN = {function(x) {x$value}}))
+  parallel::stopCluster(cl = cluster)
 
-  fit_info$i_best <- i_best
+  # work out which of the jittered fits is the 'best' (has the lowest value)
+  fit_info$i_best_jitter <- which.min(
+    lapply(
+      X = fit_info$jitter_optim_results,
+      FUN = {
+        function(x) {
+          x$value
+        }
+      }
+    )
+  )
 
-  fit_info$optim_result <- optim_results[[i_best]]
+  fit_info$optim_result <- (
+    fit_info$jitter_optim_results[[fit_info$i_best_jitter]]
+  )
 
   # convert the vector of parameter values into named parameters
   fit_info$fitted_params <- unpack_params(
@@ -179,42 +196,6 @@ fit_data <- function(
 }
 
 
-gen_jitters <- function(start_points, jitter_amount, n_jitters, seed = NULL) {
-
-  seed <- ifelse(
-    is.null(seed),
-    sample.int(n = .Machine$integer.max, size = 1),
-    seed
-  )
-
-  jitter_seeds <- withr::with_seed(
-    seed = seed,
-    code = {sample.int(n = .Machine$integer.max, size = n_jitters)}
-  )
-
-  max_jitters <- abs(start_points * jitter_amount)
-
-  jitter_amounts <- lapply(
-    X = jitter_seeds,
-    FUN = {
-      function (jitter_seed) {
-        withr::with_seed(
-          seed = jitter_seed,
-          code = {
-            stats::runif(
-              n = length(start_points),
-              min = -max_jitters,
-              max = +max_jitters
-            )
-          }
-        )
-      }
-    }
-  )
-
-  return(jitter_amounts)
-
-}
 
 
 #' Evalulate the cumulative distribution function under the model.
@@ -616,4 +597,78 @@ add_ecdf_to_data <- function(data) {
     )
 
   return(data)
+}
+
+
+# generate a set of 'jitters' (offsets to apply to the start points)
+gen_jitters <- function(
+  start_points,
+  jitter_amount_prop,
+  n_jitters,
+  seed = NULL
+) {
+
+  if (n_jitters == 0) {
+    return(list())
+  }
+
+  seed <- ifelse(
+    is.null(seed),
+    sample.int(n = .Machine$integer.max, size = 1),
+    seed
+  )
+
+  # one seed for each jitter (where a 'jitter' is a complete set of offsets)
+  jitter_seeds <- withr::with_seed(
+    seed = seed,
+    code = {
+      sample.int(n = .Machine$integer.max, size = n_jitters)
+    }
+  )
+
+  # the maximum offset is a proportion of the start point
+  max_offset <- abs(start_points * jitter_amount_prop)
+
+  # each offset is sampled from a uniform distribution
+  # in [-max_offset, +max_offset]
+  jitter_amounts <- lapply(
+    X = jitter_seeds,
+    FUN = {
+      function(jitter_seed) {
+        withr::with_seed(
+          seed = jitter_seed,
+          code = {
+            stats::runif(
+              n = length(start_points),
+              min = -max_offset,
+              max = +max_offset
+            )
+          }
+        )
+      }
+    }
+  )
+
+  return(jitter_amounts)
+
+}
+
+
+# figure out how many workers to use for parallel computation
+# CRAN restricts it to 2
+# this function from https://stackoverflow.com/a/50571533
+get_n_workers <- function() {
+
+  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+
+  if (nzchar(chk) && chk == "TRUE") {
+    # use 2 cores in CRAN/Travis/AppVeyor
+    num_workers <- 2L
+  } else {
+    # use all cores in devtools::test()
+    num_workers <- parallel::detectCores()
+  }
+
+  return(num_workers)
+
 }

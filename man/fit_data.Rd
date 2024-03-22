@@ -12,7 +12,8 @@ fit_data(
   with_early_component = FALSE,
   intercept_form = FALSE,
   use_minmax = FALSE,
-  fit_criterion = "likelihood"
+  fit_criterion = "likelihood",
+  jitter_settings = list(n = 7, prop = 0.5, seed = NULL)
 )
 }
 \arguments{
@@ -38,6 +39,15 @@ fit by seeking its minimum.
 \itemize{
 \item \code{ks}: Kolmogorov-Smirnov statistic.
 \item \code{likelihood}: Negative log-likelihood.
+}}
+
+\item{jitter_settings}{Settings for running the fitting multiple times with
+randomly-generated offsets ('jitter') applied to the starting estimates.
+\itemize{
+\item{n}{How many jitter iterations to run (default of 7)}
+\item{prop}{The maximum jitter offset, as a proportion of the start
+value (default of 0.5)}
+\item{seed}{Seed for the random jitter generator (default is unseeded)}
 }}
 }
 \value{

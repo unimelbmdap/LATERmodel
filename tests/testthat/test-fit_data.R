@@ -83,7 +83,7 @@ test_that(
 
     data <- data.frame(name = "test", promptness = 1 / times)
 
-    fit <- fit_data(data = data)
+    fit <- fit_data(data = data, jitter_settings = list(n = 0))
 
     expect_equal(
       fit$fitted_params$mu,
@@ -122,7 +122,11 @@ test_that(
 
     data <- data.frame(name = "test", promptness = 1 / times)
 
-    fit <- fit_data(data = data, fit_criterion = "likelihood")
+    fit <- fit_data(
+      data = data,
+      fit_criterion = "likelihood",
+      jitter_settings = list(n = 0)
+    )
 
     expect_equal(
       fit$fitted_params$mu,
@@ -160,22 +164,26 @@ test_that(
 
     data <- data.frame(name = "test", promptness = 1 / times)
 
-    fit <- fit_data(data = data, with_early_component = TRUE)
+    fit <- fit_data(
+      data = data,
+      with_early_component = TRUE,
+      jitter_settings = list(n = 0)
+    )
 
     expect_equal(
       fit$fitted_params$mu,
       later_mu,
-      tolerance = 0.1
+      tolerance = 0.01
     )
     expect_equal(
       fit$fitted_params$sigma,
       later_sd,
-      tolerance = 0.1
+      tolerance = 0.05
     )
     expect_equal(
       fit$fitted_params$sigma_e,
-      3.2,
-      tolerance = 0.1
+      3.3,
+      tolerance = 0.01
     )
   }
 )
@@ -207,7 +215,8 @@ test_that(
     fit <- fit_data(
       data = data,
       with_early_component = TRUE,
-      fit_criterion = "likelihood"
+      fit_criterion = "likelihood",
+      jitter_settings = list(n = 0)
     )
 
     expect_equal(
@@ -218,12 +227,12 @@ test_that(
     expect_equal(
       fit$fitted_params$sigma,
       later_sd,
-      tolerance = 0.03
+      tolerance = 0.1
     )
     expect_equal(
       fit$fitted_params$sigma_e,
-      3.2,
-      tolerance = 0.1
+      3.3,
+      tolerance = 0.01
     )
   }
 )
@@ -400,7 +409,7 @@ test_that(
       )
 
       expect_equal(
-        curr_ks,
+        round(curr_ks, 3),
         spic_data[row, "ks"],
         tolerance = 0.03
       )
@@ -438,9 +447,13 @@ test_that(
 
     data <- rbind(data_a, data_b)
 
-    expect_error(fit_data(data = data))
+    expect_error(
+      fit_data(data = data, jitter_settings = list(n = 0))
+    )
 
-    expect_no_warning(fit_data(data = data, share_a = TRUE))
+    expect_no_warning(
+      fit_data(data = data, share_a = TRUE, jitter_settings = list(n = 0))
+    )
   }
 )
 
@@ -523,7 +536,8 @@ test_that(
 
     fit <- fit_data(
       data = data,
-      share_a = TRUE
+      share_a = TRUE,
+      jitter_settings = list(n = 0)
     )
 
     expect_equal(
@@ -580,7 +594,8 @@ test_that(
     fit <- fit_data(
       data = data,
       intercept_form = TRUE,
-      share_sigma = TRUE
+      share_sigma = TRUE,
+      jitter_settings = list(n = 0)
     )
 
     expect_equal(

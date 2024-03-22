@@ -37,7 +37,9 @@ Imports:
     ggplot2,
     rlang,
     stats,
-    tibble
+    tibble,
+    parallel,
+    moments
 Depends: 
     R (>= 4.1)
 LazyData: true
