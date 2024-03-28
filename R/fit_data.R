@@ -118,7 +118,16 @@ fit_data <- function(
   )
 
   # initialise the 'cluster' to run the jitter fits in parallel
-  cluster <- parallel::makeCluster(get_n_workers(), type = "FORK")
+  # note that this uses the socket-based rather than fork-based
+  # method, so that it will work on Windows
+  cluster <- parallel::makeCluster(get_n_workers())
+
+  # make the cluster processes aware of the necessary variables
+  parallel::clusterExport(
+    cl = cluster,
+    varlist=list("fit_info", "data"),
+    envir=environment()
+  )
 
   fit_info$jitter_optim_results <- parallel::parLapply(
     cl = cluster,
