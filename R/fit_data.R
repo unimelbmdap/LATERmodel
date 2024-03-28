@@ -122,11 +122,27 @@ fit_data <- function(
   # method, so that it will work on Windows
   cluster <- parallel::makeCluster(get_n_workers())
 
-  # make the cluster processes aware of the necessary variables
+  # make the cluster processes aware of the necessary variables and functions
   parallel::clusterExport(
     cl = cluster,
-    varlist=list("fit_info", "data"),
-    envir=environment()
+    varlist = list(
+      "fit_info",
+      "data",
+      "model_cdf",
+      "model_pdf",
+      "calc_loglike",
+      "unpack_params",
+      "add_named_fit_params",
+      "convert_a_to_mu_and_k",
+      "objective_function",
+      "calc_ks_stat",
+      "pnorm_with_early",
+      "dnorm_with_early",
+      "erf",
+      "set_param_counts",
+      "set_data_param_indices"
+    ),
+    envir = environment()
   )
 
   fit_info$jitter_optim_results <- parallel::parLapply(
@@ -134,7 +150,6 @@ fit_data <- function(
     X = fit_info$jitters,
     fun = {
       function(jitter) {
-
         start_points <- fit_info$start_points + jitter
 
         # run the optimiser
@@ -446,7 +461,6 @@ objective_function <- function(params, data, fit_info) {
 # uses the sample mean and standard deviation of the promptness values
 # to create optimisation starting points
 calc_start_points <- function(data, fit_info) {
-
   mu_values <- (
     data |>
       dplyr::group_by(.data$i_mu) |>
@@ -481,7 +495,6 @@ calc_start_points <- function(data, fit_info) {
   start_points <- c(a_values, log_sigma_values)
 
   if (fit_info$with_early_component) {
-
     sigma_e_mult_values <- (
       data |>
         dplyr::group_by(.data$i_sigma_e) |>
@@ -616,7 +629,6 @@ gen_jitters <- function(
   n_jitters,
   seed = NULL
 ) {
-
   if (n_jitters == 0) {
     return(list())
   }
@@ -659,7 +671,6 @@ gen_jitters <- function(
   )
 
   return(jitter_amounts)
-
 }
 
 
@@ -667,7 +678,6 @@ gen_jitters <- function(
 # CRAN restricts it to 2
 # this function from https://stackoverflow.com/a/50571533
 get_n_workers <- function() {
-
   chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
 
   if (nzchar(chk) && chk == "TRUE") {
@@ -679,5 +689,4 @@ get_n_workers <- function() {
   }
 
   return(num_workers)
-
 }
