@@ -18,12 +18,10 @@
 #'   * `likelihood`: Negative log-likelihood.
 #' @param jitter_settings Settings for running the fitting multiple times with
 #'   randomly-generated offsets ('jitter') applied to the starting estimates.
-#'   \itemize{
-#'     \item{n}{How many jitter iterations to run (default of 7)}
-#'     \item{prop}{The maximum jitter offset, as a proportion of the start
-#'       value (default of 0.5)}
-#'     \item{seed}{Seed for the random jitter generator (default is unseeded)}
-#'   }
+#'   * `n`: How many jitter iterations to run (default of 7).
+#'   * `prop`: The maximum jitter offset, as a proportion of the start
+#'   value (default of 0.5).
+#'   * `seed`: Seed for the random jitter generator (default is unseeded).
 #' @returns A list of fitting arguments and outcomes.
 #' * `fitted_params` is a named list of fitted parameter values.
 #' * `named_fit_params` is a data frame with rows given by the dataset names

@@ -27,10 +27,10 @@ fit by seeking its minimum.
 \item{jitter_settings}{Settings for running the fitting multiple times with
 randomly-generated offsets ('jitter') applied to the starting estimates.
 \itemize{
-\item{n}{How many jitter iterations to run (default of 7)}
-\item{prop}{The maximum jitter offset, as a proportion of the start
-value (default of 0.5)}
-\item{seed}{Seed for the random jitter generator (default is unseeded)}
+\item \code{n}: How many jitter iterations to run (default of 7).
+\item \code{prop}: The maximum jitter offset, as a proportion of the start
+value (default of 0.5).
+\item \code{seed}: Seed for the random jitter generator (default is unseeded).
 }}
 }
 \value{

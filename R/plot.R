@@ -198,12 +198,10 @@ reciprobit_plot <- function(
 #'   * `neg_loglike`: Negative log-likelihood.
 #' @param jitter_settings Settings for running the fitting multiple times with
 #'   randomly-generated offsets ('jitter') applied to the starting estimates.
-#'   \itemize{
-#'     \item{n}{How many jitter iterations to run (default of 7)}
-#'     \item{prop}{The maximum jitter offset, as a proportion of the start
-#'       value (default of 0.5)}
-#'     \item{seed}{Seed for the random jitter generator (default is unseeded)}
-#'   }
+#'   * `n`: How many jitter iterations to run (default of 7).
+#'   * `prop`: The maximum jitter offset, as a proportion of the start
+#'   value (default of 0.5).
+#'   * `seed`: Seed for the random jitter generator (default is unseeded).
 #'
 #' @return A dataframe with one row for each named dataset in `df` and columns
 #' equal to the LATER model parameters returned by fit_data$named_fit_params
