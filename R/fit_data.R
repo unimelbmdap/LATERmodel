@@ -106,8 +106,10 @@ fit_data <- function(
   fit_info$jitters <- gen_jitters(
     start_points = fit_info$start_points,
     jitter_amount_prop = fit_info$jitter_settings$prop,
-    n_jitters = fit_info$jitter_settings$n
+    n_jitters = fit_info$jitter_settings$n,
+    seed = fit_info$jitter_settings$seed
   )
+
 
   # start out with the start points intact (without any jitter)
   fit_info$jitters <- append(
