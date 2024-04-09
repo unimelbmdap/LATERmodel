@@ -46,12 +46,15 @@ fit_data <- function(
   intercept_form = FALSE,
   use_minmax = FALSE,
   fit_criterion = "likelihood",
-  jitter_settings = list(n = 7, prop = 0.5, seed = NULL)
+  jitter_settings = list(n = 7, prop = 0.5, seed = NA)
 ) {
   # only support fitting KS or neg likelihood criteria
   if (!(fit_criterion %in% c("ks", "likelihood"))) {
     rlang::abort("Fit criterion must be `ks` or `likelihood`")
   }
+
+  # merge any provided jitter settings with their defaults
+  jitter_settings <- merge_jitter_settings(jitter_settings = jitter_settings)
 
   # initialise a container with the provided arguments
   fit_info <- list(
@@ -110,7 +113,6 @@ fit_data <- function(
     seed = fit_info$jitter_settings$seed
   )
 
-
   # start out with the start points intact (without any jitter)
   fit_info$jitters <- append(
     list(rep.int(0, length(fit_info$start_points))),
@@ -118,38 +120,46 @@ fit_data <- function(
   )
 
   # initialise the 'cluster' to run the jitter fits in parallel
-  # note that this uses the socket-based rather than fork-based
-  # method, so that it will work on Windows
-  cluster <- parallel::makeCluster(get_n_workers())
+  # note that this is OS-dependent: it uses the socket-based type on
+  # windows (because fork doesn't work on windows) and a fork-based
+  # method on Linux (because psock doesn't work, reliably, on linux)
+  cluster_type <- ifelse(.Platform$OS.type == "windows", "PSOCK", "FORK")
+
+  cluster <- parallel::makeCluster(get_n_workers(), type=cluster_type)
 
   # make the cluster processes aware of the necessary variables and functions
-  parallel::clusterExport(
-    cl = cluster,
-    varlist = list(
-      "fit_info",
-      "data",
-      "model_cdf",
-      "model_pdf",
-      "calc_loglike",
-      "unpack_params",
-      "add_named_fit_params",
-      "convert_a_to_mu_and_k",
-      "objective_function",
-      "calc_ks_stat",
-      "pnorm_with_early",
-      "dnorm_with_early",
-      "erf",
-      "set_param_counts",
-      "set_data_param_indices"
-    ),
-    envir = environment()
-  )
+  # only needed for the PSOCK cluster type
+  if (cluster_type == "PSOCK") {
+    parallel::clusterExport(
+      cl = cluster,
+      varlist = list(
+        "fit_info",
+        "data",
+        "model_cdf",
+        "model_pdf",
+        "calc_loglike",
+        "unpack_params",
+        "add_named_fit_params",
+        "convert_a_to_mu_and_k",
+        "objective_function",
+        "calc_ks_stat",
+        "pnorm_with_early",
+        "dnorm_with_early",
+        "erf",
+        "set_param_counts",
+        "set_data_param_indices",
+        "merge_jitter_settings"
+      ),
+      envir = environment()
+    )
+  }
 
   fit_info$jitter_optim_results <- parallel::parLapply(
     cl = cluster,
     X = fit_info$jitters,
     fun = {
       function(jitter) {
+
         start_points <- fit_info$start_points + jitter
 
         # run the optimiser
@@ -388,9 +398,10 @@ convert_a_to_mu_and_k <- function(a, sigma, intercept_form) {
 }
 
 
-# returns the KS statistic given a set of model parameter values
+# returns the test statistic given a set of model parameter values
 # and the observed data
 objective_function <- function(params, data, fit_info) {
+
   labelled_params <- unpack_params(
     params = params,
     n_a = fit_info$n_a,
@@ -634,7 +645,7 @@ gen_jitters <- function(
   }
 
   seed <- ifelse(
-    is.null(seed),
+    is.na(seed),
     sample.int(n = .Machine$integer.max, size = 1),
     seed
   )
@@ -689,4 +700,23 @@ get_n_workers <- function() {
   }
 
   return(num_workers)
+}
+
+
+merge_jitter_settings <- function(jitter_settings) {
+
+  if (!("n" %in% names(jitter_settings))) {
+    jitter_settings$n <- 7
+  }
+
+  if (!("prop" %in% names(jitter_settings))) {
+    jitter_settings$prop <- 0.5
+  }
+
+  if (!("seed" %in% names(jitter_settings))) {
+    jitter_settings$seed <- NA
+  }
+
+  return(jitter_settings)
+
 }

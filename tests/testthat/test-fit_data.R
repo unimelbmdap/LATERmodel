@@ -632,3 +632,40 @@ test_that(
     }
   }
 )
+
+
+test_that(
+  "Jitter parameter merging works",
+  {
+
+    default_n <- 7
+    default_prop <- 0.5
+    default_seed <- NA
+
+    # no parameters passed
+    expect_equal(
+      merge_jitter_settings(list()),
+      list(n=default_n, prop=default_prop, seed=default_seed)
+    )
+
+    # set n
+    expect_equal(
+      merge_jitter_settings(list(n=2)),
+      list(n=2, prop=default_prop, seed=default_seed)
+    )
+
+    # set prop
+    # the sort business is because `expect_equal` seems to compare name order
+    expect_equal(
+      sort(unlist(merge_jitter_settings(list(prop=0.1)))),
+      sort(unlist(list(n=default_n, prop=0.1, seed=default_seed)))
+    )
+
+    # set seed
+    expect_equal(
+      sort(unlist(merge_jitter_settings(list(seed=123)))),
+      sort(unlist(list(n=default_n, prop=default_prop, seed=123)))
+    )
+
+  }
+)
