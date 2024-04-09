@@ -645,27 +645,72 @@ test_that(
     # no parameters passed
     expect_equal(
       merge_jitter_settings(list()),
-      list(n=default_n, prop=default_prop, seed=default_seed)
+      list(n = default_n, prop = default_prop, seed = default_seed)
     )
 
     # set n
     expect_equal(
-      merge_jitter_settings(list(n=2)),
-      list(n=2, prop=default_prop, seed=default_seed)
+      merge_jitter_settings(list(n = 2)),
+      list(n = 2, prop = default_prop, seed = default_seed)
     )
 
     # set prop
     # the sort business is because `expect_equal` seems to compare name order
     expect_equal(
-      sort(unlist(merge_jitter_settings(list(prop=0.1)))),
-      sort(unlist(list(n=default_n, prop=0.1, seed=default_seed)))
+      sort(unlist(merge_jitter_settings(list(prop = 0.1)))),
+      sort(unlist(list(n = default_n, prop = 0.1, seed = default_seed)))
     )
 
     # set seed
     expect_equal(
-      sort(unlist(merge_jitter_settings(list(seed=123)))),
-      sort(unlist(list(n=default_n, prop=default_prop, seed=123)))
+      sort(unlist(merge_jitter_settings(list(seed = 123)))),
+      sort(unlist(list(n = default_n, prop = default_prop, seed = 123)))
     )
+
+  }
+)
+
+test_that(
+  "jittering works as expected",
+  {
+
+    # simulate a dataset to use
+    promptness <- 1 / simulate_dataset(
+      n = 100,
+      later_mu = 5,
+      later_sd = 2.0,
+      early_sd = NULL,
+      seed = 124124
+    )
+    data <- data.frame(name = "test", promptness = promptness)
+
+    # no jittering if asked
+    fit <- fit_data(data = data, jitter_settings = list(n = 0))
+
+    expect_equal(length(fit$jitter_optim_results), 1)
+
+    # doing it again should give the same result
+    expect_equal(fit, fit_data(data = data, jitter_settings = list(n = 0)))
+
+    # jitter
+    fit <- fit_data(data = data, jitter_settings = list(n = 2))
+
+    expect_equal(length(fit$jitter_optim_results), 3)
+
+    # seed check
+    seed <- 12523154
+    fit_1 <- fit_data(data = data, jitter_settings = list(n = 2, seed = seed))
+    fit_2 <- fit_data(data = data, jitter_settings = list(n = 2, seed = seed))
+
+    expect_equal(fit_1, fit_2)
+
+    # unseeded
+    fit_1 <- fit_data(data = data, jitter_settings = list(n = 2))
+    fit_2 <- fit_data(data = data, jitter_settings = list(n = 2))
+
+    # jitter amounts should be different
+    expect_true(fit_1$jitters[[2]][[1]] != fit_2$jitters[[2]][[1]])
+    expect_true(fit_1$jitters[[2]][[2]] != fit_2$jitters[[2]][[2]])
 
   }
 )

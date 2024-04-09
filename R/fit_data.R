@@ -18,7 +18,8 @@
 #'   * `likelihood`: Negative log-likelihood.
 #' @param jitter_settings Settings for running the fitting multiple times with
 #'   randomly-generated offsets ('jitter') applied to the starting estimates.
-#'   * `n`: How many jitter iterations to run (default of 7).
+#'   * `n`: How many jitter iterations to run (default of 7); the total number
+#'   of fits is `n + 1` (because the un-jittered start points are also fit).
 #'   * `prop`: The maximum jitter offset, as a proportion of the start
 #'   value (default of 0.5).
 #'   * `seed`: Seed for the random jitter generator (default is unseeded).
@@ -28,7 +29,9 @@
 #'   and columns given by the parameter names.
 #' * `loglike` is the overall log-likelihood of the fit.
 #' * `aic` is the "Akaike's 'An Information Criterion'" value for the model.
-#' * `optim_result` is the raw output from `stats::optim`.
+#' * `optim_result` is the raw output from `stats::optim` for the best fit.
+#' * `jitter_optim_results` contains the raw output from each call to
+#'   `stats::optim` for the different start points.
 #' @examples
 #' data <- data.frame(name = "test", promptness = rnorm(100, 3, 1))
 #' fit <- fit_data(data = data)
@@ -125,7 +128,7 @@ fit_data <- function(
   # method on Linux (because psock doesn't work, reliably, on linux)
   cluster_type <- ifelse(.Platform$OS.type == "windows", "PSOCK", "FORK")
 
-  cluster <- parallel::makeCluster(get_n_workers(), type=cluster_type)
+  cluster <- parallel::makeCluster(get_n_workers(), type = cluster_type)
 
   # make the cluster processes aware of the necessary variables and functions
   # only needed for the PSOCK cluster type
@@ -228,8 +231,6 @@ fit_data <- function(
 
   return(fit_info)
 }
-
-
 
 
 #' Evalulate the cumulative distribution function under the model.
