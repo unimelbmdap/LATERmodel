@@ -215,8 +215,7 @@ individual_later_fit <- function(
     df,
     with_early_component = FALSE,
     fit_criterion = "likelihood",
-    jitter_settings = list(n = 7, prop = 0.5, seed = NULL)
-    ) {
+    jitter_settings = list(n = 7, prop = 0.5, seed = NULL)) {
   df |>
     dplyr::group_by(.data$name) |>
     dplyr::group_modify(
@@ -235,8 +234,7 @@ extract_fit_params_and_stat <- function(
     data,
     with_early_component,
     fit_criterion,
-    jitter_settings
-) {
+    jitter_settings) {
   this_list <- fit_data(
     data,
     with_early_component = with_early_component,

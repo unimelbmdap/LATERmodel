@@ -41,16 +41,15 @@
 #' )
 #' @export
 fit_data <- function(
-  data,
-  share_a = FALSE,
-  share_sigma = FALSE,
-  share_sigma_e = FALSE,
-  with_early_component = FALSE,
-  intercept_form = FALSE,
-  use_minmax = FALSE,
-  fit_criterion = "likelihood",
-  jitter_settings = list(n = 7, prop = 0.5, seed = NA)
-) {
+    data,
+    share_a = FALSE,
+    share_sigma = FALSE,
+    share_sigma_e = FALSE,
+    with_early_component = FALSE,
+    intercept_form = FALSE,
+    use_minmax = FALSE,
+    fit_criterion = "likelihood",
+    jitter_settings = list(n = 7, prop = 0.5, seed = NA)) {
   # only support fitting KS or neg likelihood criteria
   if (!(fit_criterion %in% c("ks", "likelihood"))) {
     rlang::abort("Fit criterion must be `ks` or `likelihood`")
@@ -162,7 +161,6 @@ fit_data <- function(
     X = fit_info$jitters,
     fun = {
       function(jitter) {
-
         start_points <- fit_info$start_points + jitter
 
         # run the optimiser
@@ -402,7 +400,6 @@ convert_a_to_mu_and_k <- function(a, sigma, intercept_form) {
 # returns the test statistic given a set of model parameter values
 # and the observed data
 objective_function <- function(params, data, fit_info) {
-
   labelled_params <- unpack_params(
     params = params,
     n_a = fit_info$n_a,
@@ -565,10 +562,10 @@ dnorm_with_early <- function(x, later_mu, later_sd, early_sd, log = FALSE) {
         exp(-(((x - later_mu)**2) / (2 * later_sd**2)))
         * (1 + erf((x - early_mu) / (sqrt(2) * early_sd)))
       ) / later_sd
-      + (
-        exp(-(((x - early_mu)**2) / (2 * early_sd**2)))
-        * (1 + erf((x - later_mu) / (sqrt(2) * later_sd)))
-      ) / early_sd
+        + (
+          exp(-(((x - early_mu)**2) / (2 * early_sd**2)))
+          * (1 + erf((x - later_mu) / (sqrt(2) * later_sd)))
+        ) / early_sd
     ) / (2 * sqrt(2 * pi))
   )
 
@@ -636,11 +633,10 @@ add_ecdf_to_data <- function(data) {
 
 # generate a set of 'jitters' (offsets to apply to the start points)
 gen_jitters <- function(
-  start_points,
-  jitter_amount_prop,
-  n_jitters,
-  seed = NULL
-) {
+    start_points,
+    jitter_amount_prop,
+    n_jitters,
+    seed = NULL) {
   if (n_jitters == 0) {
     return(list())
   }
@@ -705,7 +701,6 @@ get_n_workers <- function() {
 
 
 merge_jitter_settings <- function(jitter_settings) {
-
   if (!("n" %in% names(jitter_settings))) {
     jitter_settings$n <- 7
   }
@@ -719,5 +714,4 @@ merge_jitter_settings <- function(jitter_settings) {
   }
 
   return(jitter_settings)
-
 }

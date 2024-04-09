@@ -21,7 +21,6 @@ test_that(
     for (n_a in c(1, 2)) {
       for (n_sigma in c(1, 2)) {
         for (n_sigma_e in c(0, 1, 2)) {
-
           # it only makes sense if the number of sigma_e is the same as the
           # number of sigma
           if (n_sigma_e > 0 && n_sigma_e != n_sigma) {
@@ -637,7 +636,6 @@ test_that(
 test_that(
   "Jitter parameter merging works",
   {
-
     default_n <- 7
     default_prop <- 0.5
     default_seed <- NA
@@ -666,14 +664,12 @@ test_that(
       sort(unlist(merge_jitter_settings(list(seed = 123)))),
       sort(unlist(list(n = default_n, prop = default_prop, seed = 123)))
     )
-
   }
 )
 
 test_that(
   "jittering works as expected",
   {
-
     # simulate a dataset to use
     promptness <- 1 / simulate_dataset(
       n = 100,
@@ -711,6 +707,5 @@ test_that(
     # jitter amounts should be different
     expect_true(fit_1$jitters[[2]][[1]] != fit_2$jitters[[2]][[1]])
     expect_true(fit_1$jitters[[2]][[2]] != fit_2$jitters[[2]][[2]])
-
   }
 )
