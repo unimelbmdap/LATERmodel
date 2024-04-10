@@ -8,7 +8,7 @@ individual_later_fit(
   df,
   with_early_component = FALSE,
   fit_criterion = "likelihood",
-  jitter_settings = list(n = 7, prop = 0.5, seed = NULL)
+  jitter_settings = list(n = 7, prop = 0.5, seed = NA)
 )
 }
 \arguments{

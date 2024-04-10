@@ -13,7 +13,7 @@ fit_data(
   intercept_form = FALSE,
   use_minmax = FALSE,
   fit_criterion = "likelihood",
-  jitter_settings = list(n = 7, prop = 0.5, seed = NULL)
+  jitter_settings = list(n = 7, prop = 0.5, seed = NA)
 )
 }
 \arguments{
@@ -44,7 +44,8 @@ fit by seeking its minimum.
 \item{jitter_settings}{Settings for running the fitting multiple times with
 randomly-generated offsets ('jitter') applied to the starting estimates.
 \itemize{
-\item \code{n}: How many jitter iterations to run (default of 7).
+\item \code{n}: How many jitter iterations to run (default of 7); the total number
+of fits is \code{n + 1} (because the un-jittered start points are also fit).
 \item \code{prop}: The maximum jitter offset, as a proportion of the start
 value (default of 0.5).
 \item \code{seed}: Seed for the random jitter generator (default is unseeded).
@@ -58,7 +59,9 @@ A list of fitting arguments and outcomes.
 and columns given by the parameter names.
 \item \code{loglike} is the overall log-likelihood of the fit.
 \item \code{aic} is the "Akaike's 'An Information Criterion'" value for the model.
-\item \code{optim_result} is the raw output from \code{stats::optim}.
+\item \code{optim_result} is the raw output from \code{stats::optim} for the best fit.
+\item \code{jitter_optim_results} contains the raw output from each call to
+\code{stats::optim} for the different start points.
 }
 }
 \description{
