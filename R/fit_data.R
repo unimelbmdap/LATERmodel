@@ -636,7 +636,7 @@ gen_jitters <- function(
     start_points,
     jitter_amount_prop,
     n_jitters,
-    seed = NULL) {
+    seed = NA) {
   if (n_jitters == 0) {
     return(list())
   }
