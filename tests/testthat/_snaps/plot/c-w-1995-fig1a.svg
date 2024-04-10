@@ -20072,7 +20072,7 @@
 <text x='330.08' y='32.64' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='83.77px' lengthAdjust='spacingAndGlyphs'>Promptness (1/s)</text>
 <text x='330.08' y='568.24' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='54.42px' lengthAdjust='spacingAndGlyphs'>Latency (s)</text>
 <text transform='translate(13.05,296.65) rotate(-90)' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='147.98px' lengthAdjust='spacingAndGlyphs'>Cumulative percent probability</text>
-<text transform='translate(637.80,296.65) rotate(90)' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='37.29px' lengthAdjust='spacingAndGlyphs'>Z-score</text>
+<text transform='translate(635.52,296.65) rotate(90)' text-anchor='middle' style='font-size: 11.00px; font-family: sans;' textLength='37.29px' lengthAdjust='spacingAndGlyphs'>Z-score</text>
 <circle cx='670.45' cy='252.48' r='1.95' style='stroke-width: 0.71; stroke: #1B9E77; fill: #1B9E77;' />
 <line x1='663.54' y1='252.48' x2='677.36' y2='252.48' style='stroke-width: 1.07; stroke: #1B9E77; stroke-linecap: butt;' />
 <circle cx='670.45' cy='269.76' r='1.95' style='stroke-width: 0.71; stroke: #D95F02; fill: #D95F02;' />
