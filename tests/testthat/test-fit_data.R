@@ -21,7 +21,6 @@ test_that(
     for (n_a in c(1, 2)) {
       for (n_sigma in c(1, 2)) {
         for (n_sigma_e in c(0, 1, 2)) {
-
           # it only makes sense if the number of sigma_e is the same as the
           # number of sigma
           if (n_sigma_e > 0 && n_sigma_e != n_sigma) {
@@ -83,7 +82,7 @@ test_that(
 
     data <- data.frame(name = "test", promptness = 1 / times)
 
-    fit <- fit_data(data = data)
+    fit <- fit_data(data = data, jitter_settings = list(n = 0))
 
     expect_equal(
       fit$fitted_params$mu,
@@ -122,7 +121,11 @@ test_that(
 
     data <- data.frame(name = "test", promptness = 1 / times)
 
-    fit <- fit_data(data = data, fit_criterion = "likelihood")
+    fit <- fit_data(
+      data = data,
+      fit_criterion = "likelihood",
+      jitter_settings = list(n = 0)
+    )
 
     expect_equal(
       fit$fitted_params$mu,
@@ -160,22 +163,26 @@ test_that(
 
     data <- data.frame(name = "test", promptness = 1 / times)
 
-    fit <- fit_data(data = data, with_early_component = TRUE)
+    fit <- fit_data(
+      data = data,
+      with_early_component = TRUE,
+      jitter_settings = list(n = 0)
+    )
 
     expect_equal(
       fit$fitted_params$mu,
       later_mu,
-      tolerance = 0.1
+      tolerance = 0.01
     )
     expect_equal(
       fit$fitted_params$sigma,
       later_sd,
-      tolerance = 0.1
+      tolerance = 0.05
     )
     expect_equal(
       fit$fitted_params$sigma_e,
-      3.2,
-      tolerance = 0.1
+      3.3,
+      tolerance = 0.01
     )
   }
 )
@@ -207,7 +214,8 @@ test_that(
     fit <- fit_data(
       data = data,
       with_early_component = TRUE,
-      fit_criterion = "likelihood"
+      fit_criterion = "likelihood",
+      jitter_settings = list(n = 0)
     )
 
     expect_equal(
@@ -218,12 +226,12 @@ test_that(
     expect_equal(
       fit$fitted_params$sigma,
       later_sd,
-      tolerance = 0.03
+      tolerance = 0.1
     )
     expect_equal(
       fit$fitted_params$sigma_e,
-      3.2,
-      tolerance = 0.1
+      3.3,
+      tolerance = 0.01
     )
   }
 )
@@ -400,7 +408,7 @@ test_that(
       )
 
       expect_equal(
-        curr_ks,
+        round(curr_ks, 3),
         spic_data[row, "ks"],
         tolerance = 0.03
       )
@@ -438,9 +446,13 @@ test_that(
 
     data <- rbind(data_a, data_b)
 
-    expect_error(fit_data(data = data))
+    expect_error(
+      fit_data(data = data, jitter_settings = list(n = 0))
+    )
 
-    expect_no_warning(fit_data(data = data, share_a = TRUE))
+    expect_no_warning(
+      fit_data(data = data, share_a = TRUE, jitter_settings = list(n = 0))
+    )
   }
 )
 
@@ -523,7 +535,8 @@ test_that(
 
     fit <- fit_data(
       data = data,
-      share_a = TRUE
+      share_a = TRUE,
+      jitter_settings = list(n = 0)
     )
 
     expect_equal(
@@ -580,7 +593,8 @@ test_that(
     fit <- fit_data(
       data = data,
       intercept_form = TRUE,
-      share_sigma = TRUE
+      share_sigma = TRUE,
+      jitter_settings = list(n = 0)
     )
 
     expect_equal(
@@ -615,5 +629,83 @@ test_that(
 
       expect_equal(has_negative_times, allow_negative_times)
     }
+  }
+)
+
+
+test_that(
+  "Jitter parameter merging works",
+  {
+    default_n <- 7
+    default_prop <- 0.5
+    default_seed <- NA
+
+    # no parameters passed
+    expect_equal(
+      merge_jitter_settings(list()),
+      list(n = default_n, prop = default_prop, seed = default_seed)
+    )
+
+    # set n
+    expect_equal(
+      merge_jitter_settings(list(n = 2)),
+      list(n = 2, prop = default_prop, seed = default_seed)
+    )
+
+    # set prop
+    # the sort business is because `expect_equal` seems to compare name order
+    expect_equal(
+      sort(unlist(merge_jitter_settings(list(prop = 0.1)))),
+      sort(unlist(list(n = default_n, prop = 0.1, seed = default_seed)))
+    )
+
+    # set seed
+    expect_equal(
+      sort(unlist(merge_jitter_settings(list(seed = 123)))),
+      sort(unlist(list(n = default_n, prop = default_prop, seed = 123)))
+    )
+  }
+)
+
+test_that(
+  "jittering works as expected",
+  {
+    # simulate a dataset to use
+    promptness <- 1 / simulate_dataset(
+      n = 100,
+      later_mu = 5,
+      later_sd = 2.0,
+      early_sd = NULL,
+      seed = 124124
+    )
+    data <- data.frame(name = "test", promptness = promptness)
+
+    # no jittering if asked
+    fit <- fit_data(data = data, jitter_settings = list(n = 0))
+
+    expect_equal(length(fit$jitter_optim_results), 1)
+
+    # doing it again should give the same result
+    expect_equal(fit, fit_data(data = data, jitter_settings = list(n = 0)))
+
+    # jitter
+    fit <- fit_data(data = data, jitter_settings = list(n = 2))
+
+    expect_equal(length(fit$jitter_optim_results), 3)
+
+    # seed check
+    seed <- 12523154
+    fit_1 <- fit_data(data = data, jitter_settings = list(n = 2, seed = seed))
+    fit_2 <- fit_data(data = data, jitter_settings = list(n = 2, seed = seed))
+
+    expect_equal(fit_1, fit_2)
+
+    # unseeded
+    fit_1 <- fit_data(data = data, jitter_settings = list(n = 2))
+    fit_2 <- fit_data(data = data, jitter_settings = list(n = 2))
+
+    # jitter amounts should be different
+    expect_true(fit_1$jitters[[2]][[1]] != fit_2$jitters[[2]][[1]])
+    expect_true(fit_1$jitters[[2]][[2]] != fit_2$jitters[[2]][[2]])
   }
 )

@@ -196,6 +196,12 @@ reciprobit_plot <- function(
 #'  fit by seeking its minimum.
 #'   * `ks`: Kolmogorov-Smirnov statistic.
 #'   * `neg_loglike`: Negative log-likelihood.
+#' @param jitter_settings Settings for running the fitting multiple times with
+#'   randomly-generated offsets ('jitter') applied to the starting estimates.
+#'   * `n`: How many jitter iterations to run (default of 7).
+#'   * `prop`: The maximum jitter offset, as a proportion of the start
+#'   value (default of 0.5).
+#'   * `seed`: Seed for the random jitter generator (default is unseeded).
 #'
 #' @return A dataframe with one row for each named dataset in `df` and columns
 #' equal to the LATER model parameters returned by fit_data$named_fit_params
@@ -208,14 +214,16 @@ reciprobit_plot <- function(
 individual_later_fit <- function(
     df,
     with_early_component = FALSE,
-    fit_criterion = "likelihood") {
+    fit_criterion = "likelihood",
+    jitter_settings = list(n = 7, prop = 0.5, seed = NA)) {
   df |>
     dplyr::group_by(.data$name) |>
     dplyr::group_modify(
       ~ extract_fit_params_and_stat(
         .x,
         with_early_component = with_early_component,
-        fit_criterion = fit_criterion
+        fit_criterion = fit_criterion,
+        jitter_settings = jitter_settings
       ),
       .keep = TRUE
     ) |>
@@ -225,11 +233,13 @@ individual_later_fit <- function(
 extract_fit_params_and_stat <- function(
     data,
     with_early_component,
-    fit_criterion) {
+    fit_criterion,
+    jitter_settings) {
   this_list <- fit_data(
     data,
     with_early_component = with_early_component,
-    fit_criterion = fit_criterion
+    fit_criterion = fit_criterion,
+    jitter_settings = jitter_settings
   )
 
   df <- data.frame(

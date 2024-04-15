@@ -23,9 +23,9 @@ simulate_dataset <- function(
     later_mu,
     later_sd,
     early_sd = NULL,
-    seed = NULL,
+    seed = NA,
     allow_negative_times = FALSE) {
-  if (is.null(seed)) {
+  if (is.na(seed)) {
     seed <- sample.int(n = .Machine$integer.max, size = 1)
   }
 

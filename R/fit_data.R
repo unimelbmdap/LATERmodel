@@ -16,13 +16,22 @@
 #'  fit by seeking its minimum.
 #'   * `ks`: Kolmogorov-Smirnov statistic.
 #'   * `likelihood`: Negative log-likelihood.
+#' @param jitter_settings Settings for running the fitting multiple times with
+#'   randomly-generated offsets ('jitter') applied to the starting estimates.
+#'   * `n`: How many jitter iterations to run (default of 7); the total number
+#'   of fits is `n + 1` (because the un-jittered start points are also fit).
+#'   * `prop`: The maximum jitter offset, as a proportion of the start
+#'   value (default of 0.5).
+#'   * `seed`: Seed for the random jitter generator (default is unseeded).
 #' @returns A list of fitting arguments and outcomes.
 #' * `fitted_params` is a named list of fitted parameter values.
 #' * `named_fit_params` is a data frame with rows given by the dataset names
 #'   and columns given by the parameter names.
 #' * `loglike` is the overall log-likelihood of the fit.
 #' * `aic` is the "Akaike's 'An Information Criterion'" value for the model.
-#' * `optim_result` is the raw output from `stats::optim`.
+#' * `optim_result` is the raw output from `stats::optim` for the best fit.
+#' * `jitter_optim_results` contains the raw output from each call to
+#'   `stats::optim` for the different start points.
 #' @examples
 #' data <- data.frame(name = "test", promptness = rnorm(100, 3, 1))
 #' fit <- fit_data(data = data)
@@ -39,11 +48,15 @@ fit_data <- function(
     with_early_component = FALSE,
     intercept_form = FALSE,
     use_minmax = FALSE,
-    fit_criterion = "likelihood") {
+    fit_criterion = "likelihood",
+    jitter_settings = list(n = 7, prop = 0.5, seed = NA)) {
   # only support fitting KS or neg likelihood criteria
   if (!(fit_criterion %in% c("ks", "likelihood"))) {
     rlang::abort("Fit criterion must be `ks` or `likelihood`")
   }
+
+  # merge any provided jitter settings with their defaults
+  jitter_settings <- merge_jitter_settings(jitter_settings = jitter_settings)
 
   # initialise a container with the provided arguments
   fit_info <- list(
@@ -53,7 +66,8 @@ fit_data <- function(
     with_early_component = with_early_component,
     intercept_form = intercept_form,
     use_minmax = use_minmax,
-    fit_criterion = fit_criterion
+    fit_criterion = fit_criterion,
+    jitter_settings = jitter_settings
   )
 
   # we only need to deal with the `name` and `promptness` columns in
@@ -93,21 +107,92 @@ fit_data <- function(
   # determine reasonable parameter values to start the optimisation
   fit_info$start_points <- calc_start_points(data = data, fit_info = fit_info)
 
-  # the parameter values are divided by these values internally within
-  # the optimiser, to put the parameters on similar scales
-  # see e.g., https://www.r-bloggers.com/2014/01/tuning-optim-with-parscale/
-  parscale <- abs(fit_info$start_points)
+  # calculate a set of 'jitters' to apply to the start points
+  fit_info$jitters <- gen_jitters(
+    start_points = fit_info$start_points,
+    jitter_amount_prop = fit_info$jitter_settings$prop,
+    n_jitters = fit_info$jitter_settings$n,
+    seed = fit_info$jitter_settings$seed
+  )
 
-  # increase the number of maximum allowable iterations of the optimiser
-  maxit <- 1000000
+  # start out with the start points intact (without any jitter)
+  fit_info$jitters <- append(
+    list(rep.int(0, length(fit_info$start_points))),
+    fit_info$jitters
+  )
 
-  # run the optimiser
-  fit_info$optim_result <- stats::optim(
-    fit_info$start_points,
-    objective_function,
-    control = list(parscale = parscale, maxit = maxit),
-    data = data,
-    fit_info = fit_info,
+  # initialise the 'cluster' to run the jitter fits in parallel
+  # note that this is OS-dependent: it uses the socket-based type on
+  # windows (because fork doesn't work on windows) and a fork-based
+  # method on Linux (because psock doesn't work, reliably, on linux)
+  cluster_type <- ifelse(.Platform$OS.type == "windows", "PSOCK", "FORK")
+
+  cluster <- parallel::makeCluster(get_n_workers(), type = cluster_type)
+
+  # make the cluster processes aware of the necessary variables and functions
+  # only needed for the PSOCK cluster type
+  if (cluster_type == "PSOCK") {
+    parallel::clusterExport(
+      cl = cluster,
+      varlist = list(
+        "fit_info",
+        "data",
+        "model_cdf",
+        "model_pdf",
+        "calc_loglike",
+        "unpack_params",
+        "add_named_fit_params",
+        "convert_a_to_mu_and_k",
+        "objective_function",
+        "calc_ks_stat",
+        "pnorm_with_early",
+        "dnorm_with_early",
+        "erf",
+        "set_param_counts",
+        "set_data_param_indices",
+        "merge_jitter_settings"
+      ),
+      envir = environment()
+    )
+  }
+
+  fit_info$jitter_optim_results <- parallel::parLapply(
+    cl = cluster,
+    X = fit_info$jitters,
+    fun = {
+      function(jitter) {
+        start_points <- fit_info$start_points + jitter
+
+        # run the optimiser
+        optim_result <- stats::optim(
+          start_points,
+          objective_function,
+          control = list(maxit = 1000000),
+          data = data,
+          fit_info = fit_info
+        )
+
+        return(optim_result)
+      }
+    }
+  )
+
+  parallel::stopCluster(cl = cluster)
+
+  # work out which of the jittered fits is the 'best' (has the lowest value)
+  fit_info$i_best_jitter <- which.min(
+    lapply(
+      X = fit_info$jitter_optim_results,
+      FUN = {
+        function(x) {
+          x$value
+        }
+      }
+    )
+  )
+
+  fit_info$optim_result <- (
+    fit_info$jitter_optim_results[[fit_info$i_best_jitter]]
   )
 
   # convert the vector of parameter values into named parameters
@@ -312,7 +397,7 @@ convert_a_to_mu_and_k <- function(a, sigma, intercept_form) {
 }
 
 
-# returns the KS statistic given a set of model parameter values
+# returns the test statistic given a set of model parameter values
 # and the observed data
 objective_function <- function(params, data, fit_info) {
   labelled_params <- unpack_params(
@@ -361,7 +446,9 @@ objective_function <- function(params, data, fit_info) {
         ),
       ) |>
       dplyr::summarize(
-        neg_loglike = -1 * sum(.data$loglike)
+        neg_loglike = -1 * sum(
+          ifelse(.data$loglike == -Inf, -1e12, .data$loglike)
+        )
       ) |>
       dplyr::pull(.data$neg_loglike)
   } else {
@@ -393,7 +480,13 @@ calc_start_points <- function(data, fit_info) {
   sigma_values <- (
     data |>
       dplyr::group_by(.data$i_sigma) |>
-      dplyr::summarize(val = stats::sd(.data$promptness)) |>
+      dplyr::summarize(
+        val = dplyr::if_else(
+          condition = moments::skewness(.data$promptness) < 0.25,
+          true = stats::sd(.data$promptness),
+          false = stats::sd(.data$promptness) / 2
+        )
+      ) |>
       dplyr::pull(.data$val)
   )
 
@@ -411,9 +504,20 @@ calc_start_points <- function(data, fit_info) {
   start_points <- c(a_values, log_sigma_values)
 
   if (fit_info$with_early_component) {
-    # sigma_e is given by exp(log_sigma_e_mult) * sigma
-    # set each log_sigma_e_mult to log(3), so 3 x sigma
-    log_sigma_e_mult_values <- log(rep(3, length.out = fit_info$n_sigma_e))
+    sigma_e_mult_values <- (
+      data |>
+        dplyr::group_by(.data$i_sigma_e) |>
+        dplyr::summarize(
+          val = dplyr::if_else(
+            condition = moments::skewness(.data$promptness) < 0.25,
+            true = 0.5,
+            false = 5
+          )
+        ) |>
+        dplyr::pull(.data$val)
+    )
+
+    log_sigma_e_mult_values <- log(sigma_e_mult_values)
 
     start_points <- c(start_points, log_sigma_e_mult_values)
   }
@@ -458,10 +562,10 @@ dnorm_with_early <- function(x, later_mu, later_sd, early_sd, log = FALSE) {
         exp(-(((x - later_mu)**2) / (2 * later_sd**2)))
         * (1 + erf((x - early_mu) / (sqrt(2) * early_sd)))
       ) / later_sd
-      + (
-        exp(-(((x - early_mu)**2) / (2 * early_sd**2)))
-        * (1 + erf((x - later_mu) / (sqrt(2) * later_sd)))
-      ) / early_sd
+        + (
+          exp(-(((x - early_mu)**2) / (2 * early_sd**2)))
+          * (1 + erf((x - later_mu) / (sqrt(2) * later_sd)))
+        ) / early_sd
     ) / (2 * sqrt(2 * pi))
   )
 
@@ -524,4 +628,90 @@ add_ecdf_to_data <- function(data) {
     )
 
   return(data)
+}
+
+
+# generate a set of 'jitters' (offsets to apply to the start points)
+gen_jitters <- function(
+    start_points,
+    jitter_amount_prop,
+    n_jitters,
+    seed = NA) {
+  if (n_jitters == 0) {
+    return(list())
+  }
+
+  seed <- ifelse(
+    is.na(seed),
+    sample.int(n = .Machine$integer.max, size = 1),
+    seed
+  )
+
+  # one seed for each jitter (where a 'jitter' is a complete set of offsets)
+  jitter_seeds <- withr::with_seed(
+    seed = seed,
+    code = {
+      sample.int(n = .Machine$integer.max, size = n_jitters)
+    }
+  )
+
+  # the maximum offset is a proportion of the start point
+  max_offset <- abs(start_points * jitter_amount_prop)
+
+  # each offset is sampled from a uniform distribution
+  # in [-max_offset, +max_offset]
+  jitter_amounts <- lapply(
+    X = jitter_seeds,
+    FUN = {
+      function(jitter_seed) {
+        withr::with_seed(
+          seed = jitter_seed,
+          code = {
+            stats::runif(
+              n = length(start_points),
+              min = -max_offset,
+              max = +max_offset
+            )
+          }
+        )
+      }
+    }
+  )
+
+  return(jitter_amounts)
+}
+
+
+# figure out how many workers to use for parallel computation
+# CRAN restricts it to 2
+# this function from https://stackoverflow.com/a/50571533
+get_n_workers <- function() {
+  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
+
+  if (nzchar(chk) && chk == "TRUE") {
+    # use 2 cores in CRAN/Travis/AppVeyor
+    num_workers <- 2L
+  } else {
+    # use all cores in devtools::test()
+    num_workers <- parallel::detectCores()
+  }
+
+  return(num_workers)
+}
+
+
+merge_jitter_settings <- function(jitter_settings) {
+  if (!("n" %in% names(jitter_settings))) {
+    jitter_settings$n <- 7
+  }
+
+  if (!("prop" %in% names(jitter_settings))) {
+    jitter_settings$prop <- 0.5
+  }
+
+  if (!("seed" %in% names(jitter_settings))) {
+    jitter_settings$seed <- NA
+  }
+
+  return(jitter_settings)
 }

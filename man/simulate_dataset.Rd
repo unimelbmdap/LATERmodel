@@ -9,7 +9,7 @@ simulate_dataset(
   later_mu,
   later_sd,
   early_sd = NULL,
-  seed = NULL,
+  seed = NA,
   allow_negative_times = FALSE
 )
 }
