@@ -10,7 +10,7 @@ times &amp;lt;= 0)."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/a
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
     
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light"><div class="container">
+    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
     
     <a class="navbar-brand me-2" href="../index.html">LATERmodel</a>
 
@@ -31,6 +31,9 @@ times &amp;lt;= 0)."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/a
     <a class="dropdown-item" href="../articles/cw1995_analysis.html">Analysis of 'Neural computation of log likelihood in control of saccadic eye movements'</a>
     <a class="dropdown-item" href="../articles/use-laterapp.html">Use LATERmodel through R Shiny app</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -66,7 +69,7 @@ times &lt;= 0).</p>
 <span>  <span class="va">later_mu</span>,</span>
 <span>  <span class="va">later_sd</span>,</span>
 <span>  early_sd <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  allow_negative_times <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -110,39 +113,39 @@ returned samples are positive. If <code>TRUE</code>, no such replacement is perf
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">simulate_dataset</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">100</span>, later_mu <span class="op">=</span> <span class="fl">5</span>, later_sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] 0.1663473 0.1633896 0.1960125 0.2007303 0.2120931 0.1711907 0.2371907</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [8] 0.1850594 0.1560015 0.2029097 0.1752626 0.1862886 0.1609295 0.1411118</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [15] 0.2223893 0.2619697 0.2396267 0.1831596 0.2091366 0.2031528 0.2029245</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [22] 0.2093497 0.1647700 0.2001459 0.2103464 0.2227490 0.2625729 0.1510543</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [29] 0.1653030 0.2213054 0.1653404 0.3818527 0.2476014 0.1533337 0.1743418</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [36] 0.2216901 0.1679555 0.3395165 0.1864018 0.2218093 0.1500574 0.2198404</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [43] 0.2021251 0.1820733 0.2059570 0.1887441 0.1720398 0.2100947 0.2685860</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [50] 0.1931897 0.2070504 0.1774933 0.2998593 0.1506378 0.2088142 0.1809337</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [57] 0.3246475 0.2353512 0.1630951 0.2331143 0.1328320 0.1801135 0.1662361</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [64] 0.2250780 0.2734679 0.2104119 0.2006009 0.2533356 0.1877879 0.1686202</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [71] 0.1993811 0.2042274 0.2704095 0.2231731 0.1575005 0.1806036 0.2008095</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [78] 0.3366024 0.2394901 0.1499820 0.1697942 0.3923610 0.1566983 0.2442899</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] 0.2456510 0.2018113 0.1976172 0.2587040 0.1553047 0.2090336 0.2159854</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [92] 0.2082150 0.1509252 0.1555315 0.2607652 0.2047372 0.1994665 0.2026708</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [99] 0.1503298 0.1761153</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] 0.2206471 0.1790854 0.1813213 0.2231294 0.2010319 0.2089274 0.1385801</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [8] 0.2300278 0.1979888 0.2008584 0.2575018 0.1709018 0.1708349 0.2503758</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [15] 0.2225236 0.3267094 0.1743423 0.2004140 0.2172266 0.2271258 0.2070978</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [22] 0.1930361 0.2247836 0.1933926 0.3504088 0.1819447 0.1821516 0.2583235</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [29] 0.1792680 0.2708306 0.2283998 0.1628541 0.1957677 0.2414111 0.1307250</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [36] 0.1972742 0.1865192 0.1950119 0.2172839 0.1356337 0.1630641 0.2842304</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [43] 0.1588594 0.1633439 0.1725876 0.1418554 0.1823704 0.2467950 0.1765971</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [50] 0.2016721 0.1624388 0.1593384 0.1668499 0.1527774 0.1623631 0.2155245</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [57] 0.1701278 0.2016681 0.2484301 0.3208591 0.2038948 0.1848638 0.1754898</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [64] 0.1549705 0.1946817 0.1826178 0.2045931 0.1533811 0.1877312 0.2008377</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [71] 0.1812827 0.2058945 0.2529057 0.1909502 0.2470029 0.2231651 0.1461456</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [78] 0.2112618 0.1381797 0.2744157 0.2624995 0.1780088 0.1651297 0.1585495</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] 0.1501129 0.2001026 0.1774188 0.1624632 0.2222942 0.1779317 0.1769214</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [92] 0.1497944 0.1226333 0.2134477 0.2059598 0.1769751 0.1961413 0.2258338</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [99] 0.2693676 0.3443959</span>
 <span class="r-in"><span><span class="fu">simulate_dataset</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">100</span>, later_mu <span class="op">=</span> <span class="fl">5</span>, later_sd <span class="op">=</span> <span class="fl">1</span>, early_sd <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] 0.10071825 0.21110708 0.14943431 0.14573467 0.19655879 0.14320868</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [7] 0.17545348 0.22459210 0.11655050 0.26872013 0.24239893 0.17505780</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [13] 0.30860460 0.08864787 0.20818896 0.18214362 0.17263096 0.21804011</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [19] 0.14203470 0.17554668 0.18103115 0.12015268 0.16937925 0.23182961</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [25] 0.16953316 0.10794137 0.19390247 0.12260488 0.14895724 0.23783084</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [31] 0.12902308 0.17778492 0.07258667 0.18976993 0.18974942 0.19357041</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [37] 0.13465065 0.10336442 0.18377348 0.13408214 0.12826818 0.19405762</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [43] 0.15757860 0.19186960 0.36597430 0.09445302 0.11884534 0.20481689</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [49] 0.14248619 0.16144285 0.09528992 0.20644369 0.23504353 0.15833623</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [55] 0.17483934 0.35107209 0.19472594 0.14004849 0.14839995 0.19504552</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [61] 0.23970720 0.16536529 0.20673317 0.16687568 0.16275508 0.19266991</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [67] 0.21356153 0.21780913 0.18996683 0.14456796 0.17925851 0.17588903</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [73] 0.15879309 0.13320488 0.15439728 0.13547734 0.20088617 0.11358331</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [79] 0.20665555 0.17365669 0.25338119 0.18543130 0.18493134 0.09193898</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] 0.11714179 0.13336103 0.15552264 0.21800173 0.21000250 0.25355129</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [91] 0.11922534 0.16147247 0.18177767 0.19671960 0.18474458 0.25653404</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [97] 0.12340428 0.19789089 0.13561238 0.16049518</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [1] 0.15899249 0.14366213 0.15628531 0.17910491 0.20499168 0.15778798</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [7] 0.17927779 0.10038127 0.19089704 0.18495810 0.11178415 0.22784170</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [13] 0.20081107 0.17579287 0.26119753 0.20560001 0.15547121 0.17901209</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [19] 0.24542802 0.17842373 0.14836300 0.27225881 0.10711210 0.19229465</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [25] 0.23015011 0.20653874 0.18799530 0.15341583 0.14456105 0.09228581</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [31] 0.26581950 0.22110082 0.10676848 0.17688167 0.20102198 0.13813315</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [37] 0.16269370 0.22787156 0.20413137 0.17895977 0.17869402 0.21928739</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [43] 0.22837241 0.19606528 0.18358273 0.26635718 0.20323531 0.14584668</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [49] 0.16492035 0.20390079 0.17499794 0.13498608 0.07275940 0.21966361</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [55] 0.10733690 0.16326620 0.17635431 0.19186823 0.24275854 0.15976211</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [61] 0.23775531 0.14759683 0.23165083 0.18918100 0.18315872 0.16464406</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [67] 0.20651844 0.18336855 0.22197108 0.10854298 0.14157894 0.21054286</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [73] 0.18056445 0.16855395 0.13445249 0.15823873 0.13787888 0.19809042</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [79] 0.16972517 0.17902380 0.19114423 0.27338356 0.07558715 0.22231333</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [85] 0.14895115 0.16028298 0.09105527 0.24877590 0.10680192 0.21238634</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [91] 0.17905109 0.24100067 0.14841578 0.16578007 0.10235550 0.17383866</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [97] 0.16343946 0.17317484 0.20361071 0.17902038</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
@@ -154,7 +157,7 @@ returned samples are positive. If <code>TRUE</code>, no such replacement is perf
 </div>
 
 <div class="pkgdown-footer-right">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.8.</p>
 </div>
 
     </footer></div>
