@@ -639,30 +639,56 @@ test_that(
     default_n <- 7
     default_prop <- 0.5
     default_seed <- NA
+    default_processes <- 2
 
     # no parameters passed
     expect_equal(
       merge_jitter_settings(list()),
-      list(n = default_n, prop = default_prop, seed = default_seed)
+      list(
+        n = default_n,
+        prop = default_prop,
+        seed = default_seed,
+        processes = default_processes
+      )
     )
 
     # set n
     expect_equal(
       merge_jitter_settings(list(n = 2)),
-      list(n = 2, prop = default_prop, seed = default_seed)
+      list(
+           n = 2,
+           prop = default_prop,
+           seed = default_seed,
+           processes=default_processes
+      )
     )
 
     # set prop
     # the sort business is because `expect_equal` seems to compare name order
     expect_equal(
       sort(unlist(merge_jitter_settings(list(prop = 0.1)))),
-      sort(unlist(list(n = default_n, prop = 0.1, seed = default_seed)))
+      sort(unlist(list(n = default_n, prop = 0.1, seed = default_seed, processes=default_processes)))
     )
 
     # set seed
     expect_equal(
       sort(unlist(merge_jitter_settings(list(seed = 123)))),
-      sort(unlist(list(n = default_n, prop = default_prop, seed = 123)))
+      sort(unlist(list(n = default_n, prop = default_prop, seed = 123, processes=default_processes)))
+    )
+
+    # set processes
+    expect_equal(
+      sort(unlist(merge_jitter_settings(list(processes = 1)))),
+      sort(
+        unlist(
+          list(
+            n = default_n,
+            prop = default_prop,
+            seed = default_seed,
+            processes = 1
+          )
+        )
+      )
     )
   }
 )
