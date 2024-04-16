@@ -202,6 +202,8 @@ reciprobit_plot <- function(
 #'   * `prop`: The maximum jitter offset, as a proportion of the start
 #'   value (default of 0.5).
 #'   * `seed`: Seed for the random jitter generator (default is unseeded).
+#'   * `processes`: Maximum number of CPU processes that can be used (default
+#'   is 2).
 #'
 #' @return A dataframe with one row for each named dataset in `df` and columns
 #' equal to the LATER model parameters returned by fit_data$named_fit_params
@@ -215,7 +217,7 @@ individual_later_fit <- function(
     df,
     with_early_component = FALSE,
     fit_criterion = "likelihood",
-    jitter_settings = list(n = 7, prop = 0.5, seed = NA)) {
+    jitter_settings = list(n = 7, prop = 0.5, seed = NA, processes = 2)) {
   df |>
     dplyr::group_by(.data$name) |>
     dplyr::group_modify(
