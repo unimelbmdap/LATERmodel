@@ -23,6 +23,8 @@
 #'   * `prop`: The maximum jitter offset, as a proportion of the start
 #'   value (default of 0.5).
 #'   * `seed`: Seed for the random jitter generator (default is unseeded).
+#'   * `processes`: Maximum number of CPU processes that can be used (default
+#'   is 2).
 #' @returns A list of fitting arguments and outcomes.
 #' * `fitted_params` is a named list of fitted parameter values.
 #' * `named_fit_params` is a data frame with rows given by the dataset names
@@ -49,7 +51,7 @@ fit_data <- function(
     intercept_form = FALSE,
     use_minmax = FALSE,
     fit_criterion = "likelihood",
-    jitter_settings = list(n = 7, prop = 0.5, seed = NA)) {
+    jitter_settings = list(n = 7, prop = 0.5, seed = NA, processes = 2)) {
   # only support fitting KS or neg likelihood criteria
   if (!(fit_criterion %in% c("ks", "likelihood"))) {
     rlang::abort("Fit criterion must be `ks` or `likelihood`")
@@ -127,7 +129,10 @@ fit_data <- function(
   # method on Linux (because psock doesn't work, reliably, on linux)
   cluster_type <- ifelse(.Platform$OS.type == "windows", "PSOCK", "FORK")
 
-  cluster <- parallel::makeCluster(get_n_workers(), type = cluster_type)
+  # don't use more workers than are necessary for the number of parallel fits
+  n_workers <- min(jitter_settings$processes, jitter_settings$n + 1)
+
+  cluster <- parallel::makeCluster(n_workers, type = cluster_type)
 
   # make the cluster processes aware of the necessary variables and functions
   # only needed for the PSOCK cluster type
@@ -682,24 +687,6 @@ gen_jitters <- function(
 }
 
 
-# figure out how many workers to use for parallel computation
-# CRAN restricts it to 2
-# this function from https://stackoverflow.com/a/50571533
-get_n_workers <- function() {
-  chk <- Sys.getenv("_R_CHECK_LIMIT_CORES_", "")
-
-  if (nzchar(chk) && chk == "TRUE") {
-    # use 2 cores in CRAN/Travis/AppVeyor
-    num_workers <- 2L
-  } else {
-    # use all cores in devtools::test()
-    num_workers <- parallel::detectCores()
-  }
-
-  return(num_workers)
-}
-
-
 merge_jitter_settings <- function(jitter_settings) {
   if (!("n" %in% names(jitter_settings))) {
     jitter_settings$n <- 7
@@ -711,6 +698,10 @@ merge_jitter_settings <- function(jitter_settings) {
 
   if (!("seed" %in% names(jitter_settings))) {
     jitter_settings$seed <- NA
+  }
+
+  if (!("processes" %in% names(jitter_settings))) {
+    jitter_settings$processes <- 2
   }
 
   return(jitter_settings)

@@ -134,11 +134,12 @@ The alternative is to optimise the Kolmogorov-Smirnov statistic, which can be sp
 :::
 
 When fitting the data, the `fit_data` function attempts to find a set of start points for the model parameters (based on summaries of the observed raw data) that are likely to be close to the final values obtained after parameter optimisation.
-To provide some robustness to the specific start points that are used, the function defaults to performing an additional 7 fits (in parallel), with each having a random amount of jitter added to the start points - the function then returns the fit that was the best (had the lowest fit criterion value).
+To provide some robustness to the specific start points that are used, the function defaults to performing an additional 7 fits, with each having a random amount of jitter added to the start points - the function then returns the fit that was the best (had the lowest fit criterion value).
 The settings for this jittering can be set by passing a `jitter_settings` argument to `fit_data`.
 For example, jittering can be disabled by passing `jitter_settings = list(n = 0)`.
 Importantly, the random jitters can be made reproducible by passing a 'seed' (a positive integer), such as `jitter_settings = list(seed = 51221)`.
 In this document, we will use seeds to produce reproducible values.
+Also, the number of fits that are attempted to run in parallel is given by the `processes` option in `jitter_settings` - this is set to 2 by default, and increasing this parameter can provide substantial gains in speed (if the necessary CPU hardware is available).
 
 ```{r}
 fit_p95 <- LATERmodel::fit_data(

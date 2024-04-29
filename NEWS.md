@@ -1,4 +1,8 @@
 
+# LATERmodel 0.3.0
+
+* Added a `processes` option in the `jitter_settings` parameter for `fit_data`, which controls how many parallel processes are used to run the fits. This is set to 2 by default.
+
 # LATERmodel 0.2.0
 
 * Changed approach to determine start values for `sigma` and `sigma_e` parameters, using the skewness of the observed promptness distribution to weight the relationship between the parameters and the empirical standard deviation.
