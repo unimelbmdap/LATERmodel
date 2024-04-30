@@ -33,11 +33,10 @@ This package also includes two canonical datasets digitised from
 
 ## Installation
 
-You can install the development version of LATERmodel from [GitHub](https://github.com/) with:
+You can install LATERmodel with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("unimelbmdap/LATERmodel")
+install.packages("LATERmodel")
 ```
 
 ## Example

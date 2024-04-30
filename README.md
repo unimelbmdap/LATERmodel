@@ -23,12 +23,10 @@ S. Carpenter and Williams (1995) and Reddi, Asrress, and Carpenter
 
 ## Installation
 
-You can install the development version of LATERmodel from
-[GitHub](https://github.com/) with:
+You can install LATERmodel with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("unimelbmdap/LATERmodel")
+install.packages("LATERmodel")
 ```
 
 ## Example
@@ -70,6 +68,9 @@ reciprobit_plot(data, data_fit)
 ```
 
 <img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
+
+For a more detailed analysis using the `LATERmodel` R package, see [this
+article](https://unimelbmdap.github.io/LATERmodel/articles/cw1995_analysis.html).
 
 <div id="refs" class="references csl-bib-body hanging-indent">
 
