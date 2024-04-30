@@ -21,13 +21,15 @@ Authors@R:
              family = "Anderson",
              role = "aut",
              email = "aaj@unimelb.edu.au",
-             comment = c(ORCID = "0000-0001-7015-0061"))
+             comment = c(ORCID = "0000-0001-7015-0061")),
+      person(given = "The University of Melbourne", 
+             role = c("cph", "fnd"))
     )
-Description: This package implements the Linear Approach to Threshold with 
-    Ergodic Rate (LATER) model, which predicts distributions of reaction times 
-    and summarises them with as little as two free parameters. This package 
-    allows for easy visualisation and comparison of datasets, along with fitting 
-    of datasets using the LATER model.
+Description: Implements the Linear Approach to Threshold with Ergodic Rate 
+    (LATER) model, which predicts distributions of reaction times and 
+    summarises them with as little as two free parameters. Allows for easy 
+    visualisation and comparison of datasets, along with fitting of datasets 
+    using the LATER model.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
