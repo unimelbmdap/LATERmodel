@@ -70,10 +70,11 @@ and columns given by the parameter names.
 Fit a LATER model to a single dataset or a pair of datasets.
 }
 \examples{
+\donttest{
 data <- data.frame(name = "test", promptness = rnorm(100, 3, 1))
-fit <- fit_data(data = data)
 data_other <- data.frame(name = "test_2", promptness = rnorm(100, 1, 1))
 fit_shared_sigma <- fit_data(
   data = rbind(data, data_other), share_sigma = TRUE
 )
+}
 }

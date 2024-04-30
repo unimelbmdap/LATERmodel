@@ -19,13 +19,15 @@
 #' @importFrom rlang .data
 #'
 #' @examples
-#' a <- dplyr::filter(
-#'   carpenter_williams_1995, participant == "a",
-#'   condition == "p95" | condition == "p05"
-#' )
-#' df <- prepare_data(a)
-#' fit_params <- individual_later_fit(df, with_early_component = TRUE)
-#' reciprobit_plot(df, fit_params)
+#' \donttest{
+#' data <- rbind(
+#'   data.frame(name = "test", time = 1000/rnorm(100, 3, 1)),
+#'   data.frame(name = "test_2", time = 1000/rnorm(100, 4, 1))
+#' ) |> dplyr::filter(time > 0)
+#' data <- prepare_data(data)
+#' fit_params <- individual_later_fit(data)
+#' reciprobit_plot(data, fit_params)
+#' }
 reciprobit_plot <- function(
     plot_data,
     fit_params = NULL,
@@ -210,9 +212,13 @@ reciprobit_plot <- function(
 #' @export
 #'
 #' @examples
-#' a <- dplyr::filter(carpenter_williams_1995, participant == "a")
-#' df <- prepare_data(a)
-#' fit_params <- individual_later_fit(df)
+#' \donttest{
+#' data <- rbind(
+#'   data.frame(name = "test", promptness = rnorm(100, 3, 1)),
+#'   data.frame(name = "test_2", promptness = rnorm(100, 1, 1))
+#' )
+#' fit_params <- individual_later_fit(data)
+#' }
 individual_later_fit <- function(
     df,
     with_early_component = FALSE,

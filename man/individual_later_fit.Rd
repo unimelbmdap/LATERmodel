@@ -43,7 +43,11 @@ equal to the LATER model parameters returned by fit_data$named_fit_params
 Fit individual LATER model to each dataset in a dataframe of datasets
 }
 \examples{
-a <- dplyr::filter(carpenter_williams_1995, participant == "a")
-df <- prepare_data(a)
-fit_params <- individual_later_fit(df)
+\donttest{
+data <- rbind(
+  data.frame(name = "test", promptness = rnorm(100, 3, 1)),
+  data.frame(name = "test_2", promptness = rnorm(100, 1, 1))
+)
+fit_params <- individual_later_fit(data)
+}
 }

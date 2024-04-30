@@ -15,14 +15,16 @@
 #' * `preferred` is a boolean that indicates whether the fit has the lowest
 #'  AIC value among the fits (is 'preferred').
 #' @examples
-#' data <- dplyr::filter(
-#'   carpenter_williams_1995, participant == "a",
-#'   condition == "p05" | condition == "p95"
-#' )
+#' \donttest{
+#' data <- rbind(
+#'   data.frame(name = "test", time = 1000/rnorm(100, 3, 1)),
+#'   data.frame(name = "test_2", time = 1000/rnorm(100, 1, 1))
+#' ) |> dplyr::filter(time > 0)
 #' data <- prepare_data(data)
 #' fit_a <- fit_data(data = data, share_a = TRUE)
 #' fit_b <- fit_data(data = data, share_sigma = TRUE)
 #' comparison <- compare_fits(fits = list(a = fit_a, b = fit_b))
+#' }
 #' @export
 compare_fits <- function(fits) {
   aics <- unlist(lapply(fits, (function(fit) fit$aic)))

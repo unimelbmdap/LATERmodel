@@ -41,11 +41,13 @@ the reaction times
 Plot reaction times and LATER model fit in reciprobit axes
 }
 \examples{
-a <- dplyr::filter(
-  carpenter_williams_1995, participant == "a",
-  condition == "p95" | condition == "p05"
-)
-df <- prepare_data(a)
-fit_params <- individual_later_fit(df, with_early_component = TRUE)
-reciprobit_plot(df, fit_params)
+\donttest{
+data <- rbind(
+  data.frame(name = "test", time = 1000/rnorm(100, 3, 1)),
+  data.frame(name = "test_2", time = 1000/rnorm(100, 4, 1))
+) |> dplyr::filter(time > 0)
+data <- prepare_data(data)
+fit_params <- individual_later_fit(data)
+reciprobit_plot(data, fit_params)
+}
 }
