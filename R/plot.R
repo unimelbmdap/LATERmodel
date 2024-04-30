@@ -12,7 +12,7 @@
 #' @param xrange Desired range for the x axis, in promptness (1/s)
 #' @param yrange Desired range for the y axis, in cumulative probability space
 #'
-#' @return A reciprobit plot with the cumulative probability distribution of
+#' @returns A reciprobit plot with the cumulative probability distribution of
 #' the reaction times
 #' @export
 #'
@@ -205,7 +205,7 @@ reciprobit_plot <- function(
 #'   * `processes`: Maximum number of CPU processes that can be used (default
 #'   is 2).
 #'
-#' @return A dataframe with one row for each named dataset in `df` and columns
+#' @returns A dataframe with one row for each named dataset in `df` and columns
 #' equal to the LATER model parameters returned by fit_data$named_fit_params
 #' @export
 #'

@@ -7,7 +7,7 @@
 #' to the p-values based on Holm, 1979, A simple sequentially rejective
 #' multiple test procedure
 #'
-#' @return A dataframe with columns `name1`, `name2`, `D`, and `p_value`
+#' @returns A dataframe with columns `name1`, `name2`, `D`, and `p_value`
 #' @export
 #'
 #' @importFrom utils combn
@@ -60,7 +60,7 @@ ks_compare <- function(df, correct_multiple_comparisons = TRUE) {
 #' @param ks_results A dataframe with columns `name1`, `name2`, `D`, and
 #' `p-value`, obtained using the function ks_compare
 #'
-#' @return A heatmap plot with all paired comparisons
+#' @returns A heatmap plot with all paired comparisons
 #' @export
 #'
 #' @examples

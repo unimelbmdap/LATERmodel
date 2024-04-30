@@ -17,7 +17,7 @@
 #' but does have `participant` and `condition` columns, the `name` for each
 #' dataset will be constructed as `participant`+`name_separator`+`condition`.
 #'
-#' @return A dataframe with columns: `time`, `color`, `name`, `promptness`,
+#' @returns A dataframe with columns: `time`, `color`, `name`, `promptness`,
 #' and `e_cdf`.
 #'
 #' @export
@@ -77,7 +77,7 @@ prepare_data <- function(raw_data, time_unit = "ms", name_separator = "_") {
 #' @param rt_vector Vector of reaction times, with type 'double'
 #' @param time_unit Units of rt_vector, must be one of "ms", "ds", or "s"
 #'
-#' @return rt_vector in seconds
+#' @returns rt_vector in seconds
 #' @noRd
 convert_to_seconds <- function(rt_vector, time_unit = "ms") {
   if (time_unit == "ms") {
