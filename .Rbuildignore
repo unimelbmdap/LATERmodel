@@ -10,3 +10,4 @@
 ^docs$
 ^pkgdown$
 ^LATER\.bib$
+^cran-comments\.md$
