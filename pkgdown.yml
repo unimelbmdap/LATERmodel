@@ -1,10 +1,10 @@
 pandoc: 3.1.11
-pkgdown: 2.0.8
+pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
   cw1995_analysis: cw1995_analysis.html
   use-laterapp: use-laterapp.html
-last_built: 2024-04-15T01:36Z
+last_built: 2024-04-30T00:01Z
 urls:
   reference: https://unimelbmdap.github.io/LATERmodel/reference
   article: https://unimelbmdap.github.io/LATERmodel/articles
