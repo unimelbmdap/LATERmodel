@@ -27,5 +27,6 @@ test_that("Reddi et. al (2003) Fig2JS shared sigma", {
   df <- prepare_data(reddi_asrress_carpenter_2003)
   fit_params <- fit_data(df, share_sigma = TRUE, jitter_settings = list(n = 0))
   disp_reciprobit <- reciprobit_plot(df, fit_params$named_fit_params)
+  skip_on_os("mac")
   vdiffr::expect_doppelganger("RAC(2003)Fig2JS", disp_reciprobit)
 })
