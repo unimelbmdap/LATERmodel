@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">LATERmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -113,16 +113,14 @@ the reaction times</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
-<span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"test"</span>, time <span class="op">=</span> <span class="fl">1000</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">3</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"test_2"</span>, time <span class="op">=</span> <span class="fl">1000</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">4</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">time</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="prepare_data.html">prepare_data</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fit_params</span> <span class="op">&lt;-</span> <span class="fu"><a href="individual_later_fit.html">individual_later_fit</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">reciprobit_plot</span><span class="op">(</span><span class="va">data</span>, <span class="va">fit_params</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">carpenter_williams_1995</span>, <span class="va">participant</span> <span class="op">==</span> <span class="st">"a"</span>,</span></span>
+<span class="r-in"><span>  <span class="va">condition</span> <span class="op">==</span> <span class="st">"p95"</span> <span class="op">|</span> <span class="va">condition</span> <span class="op">==</span> <span class="st">"p05"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="prepare_data.html">prepare_data</a></span><span class="op">(</span><span class="va">a</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit_params</span> <span class="op">&lt;-</span> <span class="fu"><a href="individual_later_fit.html">individual_later_fit</a></span><span class="op">(</span><span class="va">df</span>, with_early_component <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">reciprobit_plot</span><span class="op">(</span><span class="va">df</span>, <span class="va">fit_params</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="reciprobit_plot-1.png" alt="" width="700" height="433"></span>
-<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
@@ -130,7 +128,7 @@ the reaction times</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Maria del Mar Quiroga, Damien Mannion, Edoardo Tescari, Andrew Anderson, The University of Melbourne.</p>
+  <p>Developed by Maria del Mar Quiroga, Damien Mannion, Edoardo Tescari, Andrew Anderson.</p>
 </div>
 
 <div class="pkgdown-footer-right">
