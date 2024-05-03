@@ -1,6 +1,6 @@
 Package: LATERmodel
 Title: Linear Approach to Threshold with Ergodic Rate for Reaction Times
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
     c(person(given = "Maria del Mar",
              family = "Quiroga",
