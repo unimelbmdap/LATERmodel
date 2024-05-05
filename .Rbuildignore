@@ -11,3 +11,4 @@
 ^pkgdown$
 ^LATER\.bib$
 ^cran-comments\.md$
+^CRAN-SUBMISSION$
