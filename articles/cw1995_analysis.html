@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">LATERmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -97,8 +97,7 @@ fit, visualise, and evaluate data in the context of the LATER model of
 response times. If the LATERmodel package has not yet been installed, it
 can be installed by running the following within R:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"unimelbmdap/LATERmodel"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"LATERmodel"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="loading-the-raw-data">Loading the raw data<a class="anchor" aria-label="anchor" href="#loading-the-raw-data"></a>
 </h2>
@@ -276,16 +275,21 @@ find a set of start points for the model parameters (based on summaries
 of the observed raw data) that are likely to be close to the final
 values obtained after parameter optimisation. To provide some robustness
 to the specific start points that are used, the function defaults to
-performing an additional 7 fits (in parallel), with each having a random
-amount of jitter added to the start points - the function then returns
-the fit that was the best (had the lowest fit criterion value). The
-settings for this jittering can be set by passing a
-<code>jitter_settings</code> argument to <code>fit_data</code>. For
-example, jittering can be disabled by passing
-<code>jitter_settings = list(n = 0)</code>. Importantly, the random
-jitters can be made reproducible by passing a ‘seed’ (a positive
-integer), such as <code>jitter_settings = list(seed = 51221)</code>. In
-this document, we will use seeds to produce reproducible values.</p>
+performing an additional 7 fits, with each having a random amount of
+jitter added to the start points - the function then returns the fit
+that was the best (had the lowest fit criterion value). The settings for
+this jittering can be set by passing a <code>jitter_settings</code>
+argument to <code>fit_data</code>. For example, jittering can be
+disabled by passing <code>jitter_settings = list(n = 0)</code>.
+Importantly, the random jitters can be made reproducible by passing a
+‘seed’ (a positive integer), such as
+<code>jitter_settings = list(seed = 51221)</code>. In this document, we
+will use seeds to produce reproducible values. Also, the number of fits
+that are attempted to run in parallel is given by the
+<code>processes</code> option in <code>jitter_settings</code> - this is
+set to 2 by default, and increasing this parameter can provide
+substantial gains in speed (if the necessary CPU hardware is
+available).</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_p95</span> <span class="op">&lt;-</span> <span class="fu">LATERmodel</span><span class="fu">::</span><span class="fu"><a href="../reference/fit_data.html">fit_data</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">data_p95</span>,</span>
@@ -947,7 +951,7 @@ to Curve Fitting</em>. Oxford University PressNew York, NY. <a href="https://doi
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Maria del Mar Quiroga, Damien Mannion, Edoardo Tescari, Andrew Anderson.</p>
+  <p>Developed by Maria del Mar Quiroga, Damien Mannion, Edoardo Tescari, Andrew Anderson, The University of Melbourne.</p>
 </div>
 
 <div class="pkgdown-footer-right">

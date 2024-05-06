@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">LATERmodel</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,9 +52,10 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.0" id="latermodel-020">LATERmodel 0.2.0<a class="anchor" aria-label="anchor" href="#latermodel-020"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.2.0" id="latermodel-020">LATERmodel 0.2.0<a class="anchor" aria-label="anchor" href="#latermodel-020"></a></h2><p class="text-muted">CRAN release: 2024-05-03</p>
 <ul><li>Changed approach to determine start values for <code>sigma</code> and <code>sigma_e</code> parameters, using the skewness of the observed promptness distribution to weight the relationship between the parameters and the empirical standard deviation.</li>
 <li>Added the option to perform fitting repeatedly with random offsets (jitters) to the start points (on by default), returning the best of the repeated fits.</li>
+<li>Added a <code>processes</code> option in the <code>jitter_settings</code> parameter for <code>fit_data</code>, which controls how many parallel processes are used to run the fits. This is set to 2 by default.</li>
 <li>Updated the article with the analysis of the Carpenter &amp; Williams data to include details about the jittering.</li>
 </ul></div>
     <div class="section level2">
@@ -66,7 +67,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Maria del Mar Quiroga, Damien Mannion, Edoardo Tescari, Andrew Anderson.</p>
+  <p>Developed by Maria del Mar Quiroga, Damien Mannion, Edoardo Tescari, Andrew Anderson, The University of Melbourne.</p>
 </div>
 
 <div class="pkgdown-footer-right">
