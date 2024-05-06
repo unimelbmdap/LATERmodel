@@ -1,3 +1,5 @@
+# LATERmodel (development version)
+
 # LATERmodel 0.2.0
 
 * Changed approach to determine start values for `sigma` and `sigma_e` parameters, using the skewness of the observed promptness distribution to weight the relationship between the parameters and the empirical standard deviation.
